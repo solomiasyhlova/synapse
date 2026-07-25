@@ -486,6 +486,13 @@ Items are addressed by type, e.g. `/items/snippets`.
 - Syntax highlighting for code blocks.
 - **References:** Notion, Linear, Raycast.
 
+### Design References
+
+### Screenshots
+
+Refer to the screenshots below as a base for dashboard UI, it doesn't have to be exact. Use it as reference: @context\screenshots\dashboard-ui-main.png 
+@context\screenshots\dashboard-ui-drawer.png
+
 ### Layout
 - **Sidebar + main content**, collapsible sidebar.
   - **Sidebar:** item types (Snippets, Commands, …) linking to their item lists, plus latest collections.
