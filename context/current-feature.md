@@ -23,3 +23,4 @@ Completed
 - Initial setup of Next.js
 - Project setup and boilerplate cleanup
 - Dashboard UI Phase 1
+- Dashboard UI Phase 2
