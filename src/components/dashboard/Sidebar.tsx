@@ -2,19 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Clock,
-  Folder,
-  LayoutGrid,
-  Lock,
-  Settings,
-  Star,
-  type LucideIcon,
-} from "lucide-react";
-import * as LucideIcons from "lucide-react";
+import { Clock, Folder, LayoutGrid, Lock, Settings, Star } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
 import { collections, currentUser, itemTypes } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
@@ -34,20 +26,6 @@ function getInitials(name: string) {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-}
-
-function TypeIcon({
-  name,
-  className,
-  style,
-}: {
-  name: string;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const icons = LucideIcons as unknown as Record<string, LucideIcon>;
-  const Icon = icons[name] ?? LucideIcons.Circle;
-  return <Icon className={className} style={style} />;
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
