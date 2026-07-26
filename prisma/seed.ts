@@ -27,6 +27,7 @@ type SeedItem = {
 type SeedCollection = {
   name: string;
   description: string;
+  isFavorite?: boolean;
   items: SeedItem[];
 };
 
@@ -34,6 +35,7 @@ const COLLECTIONS: SeedCollection[] = [
   {
     name: "React Patterns",
     description: "Reusable React patterns and hooks",
+    isFavorite: true,
     items: [
       {
         title: "useDebounce hook",
@@ -109,6 +111,7 @@ export function Tab({ value, children }: { value: string; children: React.ReactN
   {
     name: "AI Workflows",
     description: "AI prompts and workflow automations",
+    isFavorite: true,
     items: [
       {
         title: "Code review prompt",
@@ -327,7 +330,11 @@ async function seedCollections(userId: string, typesByName: Map<string, string>)
     const collectionRecord = existingCollection
       ? await prisma.collection.update({
           where: { id: existingCollection.id },
-          data: { description: collection.description, defaultTypeId },
+          data: {
+            description: collection.description,
+            defaultTypeId,
+            isFavorite: collection.isFavorite ?? false,
+          },
         })
       : await prisma.collection.create({
           data: {
@@ -335,6 +342,7 @@ async function seedCollections(userId: string, typesByName: Map<string, string>)
             name: collection.name,
             description: collection.description,
             defaultTypeId,
+            isFavorite: collection.isFavorite ?? false,
           },
         });
 

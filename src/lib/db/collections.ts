@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 // TODO: replace with the authenticated user's id once Auth.js sessions are wired up.
@@ -24,6 +25,35 @@ export interface CollectionWithStats {
   types: CollectionItemType[];
 }
 
+type CollectionWithItemTypes = Prisma.CollectionGetPayload<{
+  include: { items: { include: { item: { include: { itemType: true } } } } };
+}>;
+
+function toCollectionWithStats(collection: CollectionWithItemTypes): CollectionWithStats {
+  const typeCounts = new Map<string, { type: CollectionItemType; count: number }>();
+
+  for (const { item } of collection.items) {
+    const entry = typeCounts.get(item.itemType.id);
+    if (entry) {
+      entry.count += 1;
+    } else {
+      typeCounts.set(item.itemType.id, { type: item.itemType, count: 1 });
+    }
+  }
+
+  const sortedByUsage = [...typeCounts.values()].sort((a, b) => b.count - a.count);
+
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    itemCount: collection.items.length,
+    accentColor: sortedByUsage[0]?.type.color ?? null,
+    types: sortedByUsage.map(({ type }) => type),
+  };
+}
+
 export async function getRecentCollections(
   limit = RECENT_COLLECTIONS_LIMIT,
 ): Promise<CollectionWithStats[]> {
@@ -43,28 +73,24 @@ export async function getRecentCollections(
     },
   });
 
-  return collections.map((collection) => {
-    const typeCounts = new Map<string, { type: CollectionItemType; count: number }>();
+  return collections.map(toCollectionWithStats);
+}
 
-    for (const { item } of collection.items) {
-      const entry = typeCounts.get(item.itemType.id);
-      if (entry) {
-        entry.count += 1;
-      } else {
-        typeCounts.set(item.itemType.id, { type: item.itemType, count: 1 });
-      }
-    }
+export async function getFavoriteCollections(): Promise<CollectionWithStats[]> {
+  const user = await prisma.user.findUnique({ where: { email: DEMO_USER_EMAIL } });
+  if (!user) return [];
 
-    const sortedByUsage = [...typeCounts.values()].sort((a, b) => b.count - a.count);
-
-    return {
-      id: collection.id,
-      name: collection.name,
-      description: collection.description,
-      isFavorite: collection.isFavorite,
-      itemCount: collection.items.length,
-      accentColor: sortedByUsage[0]?.type.color ?? null,
-      types: sortedByUsage.map(({ type }) => type),
-    };
+  const collections = await prisma.collection.findMany({
+    where: { userId: user.id, isFavorite: true },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      items: {
+        include: {
+          item: { include: { itemType: true } },
+        },
+      },
+    },
   });
+
+  return collections.map(toCollectionWithStats);
 }
