@@ -1,14 +1,10 @@
 import Link from "next/link";
 
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
-import { collections } from "@/lib/mock-data";
+import { getRecentCollections } from "@/lib/db/collections";
 
-const RECENT_COLLECTIONS_LIMIT = 6;
-
-export function CollectionsSection() {
-  const recentCollections = [...collections]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, RECENT_COLLECTIONS_LIMIT);
+export async function CollectionsSection() {
+  const recentCollections = await getRecentCollections();
 
   return (
     <section className="space-y-4">
