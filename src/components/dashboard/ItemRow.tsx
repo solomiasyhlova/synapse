@@ -3,29 +3,27 @@ import { Pin, Star } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
-import { itemTypes, type MockItem } from "@/lib/mock-data";
+import type { ItemWithType } from "@/lib/db/items";
 
-function formatShortDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatShortDate(date: Date) {
+  return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });
 }
 
-export function ItemRow({ item }: { item: MockItem }) {
-  const type = itemTypes.find((itemType) => itemType.id === item.itemTypeId);
-  const href = type ? `/items/${type.name}/${item.id}` : `/items/${item.id}`;
+export function ItemRow({ item }: { item: ItemWithType }) {
+  const type = item.itemType;
+  const href = `/items/${type.name}/${item.id}`;
 
   return (
     <Link href={href} className="block">
       <Card
         className="flex-row items-center gap-3 border-l-2 px-4 transition-colors hover:bg-muted/40"
-        style={{ borderLeftColor: type?.color }}
+        style={{ borderLeftColor: type.color }}
       >
         <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
-          {type && (
-            <TypeIcon name={type.icon} className="size-4" style={{ color: type.color }} />
-          )}
+          <TypeIcon name={type.icon} className="size-4" style={{ color: type.color }} />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">

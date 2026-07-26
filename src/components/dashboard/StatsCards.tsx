@@ -1,15 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { collections, items } from "@/lib/mock-data";
+import { getDashboardStats } from "@/lib/db/stats";
 
-export function StatsCards() {
+export async function StatsCards() {
+  const dashboardStats = await getDashboardStats();
+
   const stats = [
-    { label: "Total items", value: items.length },
-    { label: "Collections", value: collections.length },
-    { label: "Favorite items", value: items.filter((item) => item.isFavorite).length },
-    {
-      label: "Favorite collections",
-      value: collections.filter((collection) => collection.isFavorite).length,
-    },
+    { label: "Total items", value: dashboardStats.totalItems },
+    { label: "Collections", value: dashboardStats.totalCollections },
+    { label: "Favorite items", value: dashboardStats.favoriteItems },
+    { label: "Favorite collections", value: dashboardStats.favoriteCollections },
   ];
 
   return (

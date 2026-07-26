@@ -1,14 +1,10 @@
 import { Clock } from "lucide-react";
 
 import { ItemRow } from "@/components/dashboard/ItemRow";
-import { items } from "@/lib/mock-data";
+import { getRecentItems } from "@/lib/db/items";
 
-const RECENT_ITEMS_LIMIT = 10;
-
-export function RecentItemsSection() {
-  const recentItems = [...items]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, RECENT_ITEMS_LIMIT);
+export async function RecentItemsSection() {
+  const recentItems = await getRecentItems();
 
   return (
     <section className="space-y-4">
