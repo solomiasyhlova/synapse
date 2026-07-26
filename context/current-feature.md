@@ -2,7 +2,7 @@
 
 <!-- Feature Name -->
 
-Prisma + Neon PostgreSQL Setup
+Seed Data
 
 ## Status
 
@@ -14,20 +14,18 @@ In Progress
 
 <!-- Goals & requirements -->
 
-See @context/features/database-spec.md for full spec.
+See @context/features/seed-spec.md for full spec.
 
-- Use Neon PostgreSQL (serverless)
-- Create initial schema based on data models in @context/project-overview.md (this will evolve)
-- Include NextAuth models (Account, Session, VerificationToken)
-- Add appropriate indexes and cascade deletes
-- Use Prisma 7 (breaking changes vs. Prisma 6 — read the upgrade guide before scaffolding)
-- Always create migrations, never push directly, unless specified — dev branch feeds `DATABASE_URL`, separate production branch
+- Create a seed script (`prisma/seed.ts`) to populate the database with sample data for development and demos
+- Seed a demo user (demo@devstash.io, password hashed with bcryptjs)
+- Seed the 7 system item types (snippet, prompt, command, note, file, image, link)
+- Seed 5 collections (React Patterns, AI Workflows, DevOps, Terminal Commands, Design Resources) with their items per the spec
 
 ## Notes
 
 <!-- Any extra notes -->
 
-Replaces the mock data in @src/lib/mock-data.ts, which was used for the dashboard UI phases until this is implemented.
+Depends on the Prisma + Neon PostgreSQL schema already in place.
 
 ## History
 
@@ -38,3 +36,4 @@ Replaces the mock data in @src/lib/mock-data.ts, which was used for the dashboar
 - Dashboard UI Phase 1
 - Dashboard UI Phase 2
 - Dashboard UI Phase 3
+- Prisma + Neon PostgreSQL Setup
