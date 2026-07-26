@@ -3,26 +3,15 @@ import { Star } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
-import { items, itemTypes, type MockCollection } from "@/lib/mock-data";
+import type { CollectionWithStats } from "@/lib/db/collections";
 import { cn } from "@/lib/utils";
 
-export function CollectionCard({ collection }: { collection: MockCollection }) {
-  const collectionItems = items.filter((item) =>
-    item.collectionIds.includes(collection.id),
-  );
-  const typeIds = [...new Set(collectionItems.map((item) => item.itemTypeId))];
-  const types = typeIds
-    .map((typeId) => itemTypes.find((type) => type.id === typeId))
-    .filter((type): type is NonNullable<typeof type> => Boolean(type));
-  const accentColor = itemTypes.find(
-    (type) => type.id === collection.defaultTypeId,
-  )?.color;
-
+export function CollectionCard({ collection }: { collection: CollectionWithStats }) {
   return (
     <Link href={`/collections/${collection.id}`} className="block">
       <Card
         className="border-l-2 transition-colors hover:bg-muted/40"
-        style={{ borderLeftColor: accentColor }}
+        style={{ borderLeftColor: collection.accentColor ?? undefined }}
       >
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5 text-base">
@@ -33,15 +22,15 @@ export function CollectionCard({ collection }: { collection: MockCollection }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-xs text-muted-foreground">{collectionItems.length} items</p>
+          <p className="text-xs text-muted-foreground">{collection.itemCount} items</p>
           {collection.description && (
             <p className="line-clamp-2 text-sm text-muted-foreground">
               {collection.description}
             </p>
           )}
-          {types.length > 0 && (
+          {collection.types.length > 0 && (
             <div className="flex items-center gap-1.5">
-              {types.map((type) => (
+              {collection.types.map((type) => (
                 <span
                   key={type.id}
                   className={cn(
