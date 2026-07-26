@@ -21,6 +21,7 @@ See @context/features/dashboard-phase-3-spec.md for full spec.
 - Pinned items
 - 10 recent items
 - 4 stats cards at the top for number of items, collections, favorite items and favorite collections (not in screenshot)
+- "New Collection" button in the top bar opening a dialog to create a collection (name + description). UI only for now — no persistence, since collections are still static mock data with no write path.
 
 ## Notes
 

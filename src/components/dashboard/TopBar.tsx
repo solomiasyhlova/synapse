@@ -4,6 +4,7 @@ import { Bell, Menu, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NewCollectionDialog } from "@/components/dashboard/NewCollectionDialog";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
 
 export function TopBar() {
@@ -32,6 +33,7 @@ export function TopBar() {
         <Button variant="ghost" size="icon" aria-label="Notifications">
           <Bell />
         </Button>
+        <NewCollectionDialog />
         <Button>
           <Plus />
           New item
