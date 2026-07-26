@@ -3,12 +3,20 @@ import { MobileSidebar } from "@/components/dashboard/MobileSidebar";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { SidebarProvider } from "@/components/dashboard/sidebar-context";
 import { TopBar } from "@/components/dashboard/TopBar";
+import { getFavoriteCollections, getRecentCollections } from "@/lib/db/collections";
+import { getSystemItemTypes } from "@/lib/db/items";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [itemTypes, favoriteCollections, recentCollections] = await Promise.all([
+    getSystemItemTypes(),
+    getFavoriteCollections(),
+    getRecentCollections(5),
+  ]);
+
   return (
     <SidebarProvider>
       <div className="flex min-h-0 flex-1 flex-col">
@@ -17,11 +25,19 @@ export default function DashboardLayout({
           <TopBar />
         </header>
         <div className="flex min-h-0 flex-1">
-          <Sidebar />
+          <Sidebar
+            itemTypes={itemTypes}
+            favoriteCollections={favoriteCollections}
+            recentCollections={recentCollections}
+          />
           {children}
         </div>
       </div>
-      <MobileSidebar />
+      <MobileSidebar
+        itemTypes={itemTypes}
+        favoriteCollections={favoriteCollections}
+        recentCollections={recentCollections}
+      />
     </SidebarProvider>
   );
 }

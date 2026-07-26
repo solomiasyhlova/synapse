@@ -10,8 +10,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import type { CollectionWithStats } from "@/lib/db/collections";
+import type { ItemTypeWithCount } from "@/lib/db/items";
 
-export function MobileSidebar() {
+interface MobileSidebarProps {
+  itemTypes: ItemTypeWithCount[];
+  favoriteCollections: CollectionWithStats[];
+  recentCollections: CollectionWithStats[];
+}
+
+export function MobileSidebar({
+  itemTypes,
+  favoriteCollections,
+  recentCollections,
+}: MobileSidebarProps) {
   const { isMobileOpen, setMobileOpen } = useSidebar();
 
   return (
@@ -24,7 +36,11 @@ export function MobileSidebar() {
           <SheetTitle>Synapse</SheetTitle>
         </SheetHeader>
         <div className="min-h-0 flex-1">
-          <SidebarContent />
+          <SidebarContent
+            itemTypes={itemTypes}
+            favoriteCollections={favoriteCollections}
+            recentCollections={recentCollections}
+          />
         </div>
       </SheetContent>
     </Sheet>

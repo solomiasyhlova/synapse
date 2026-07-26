@@ -12,6 +12,10 @@ export interface ItemType {
   color: string;
 }
 
+export interface ItemTypeWithCount extends ItemType {
+  itemCount: number;
+}
+
 export interface ItemWithType {
   id: string;
   title: string;
@@ -43,4 +47,23 @@ export async function getRecentItems(limit = RECENT_ITEMS_LIMIT): Promise<ItemWi
     take: limit,
     include: { itemType: true },
   });
+}
+
+const SYSTEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];
+
+export async function getSystemItemTypes(): Promise<ItemTypeWithCount[]> {
+  const types = await prisma.itemType.findMany({ where: { isSystem: true } });
+  types.sort((a, b) => SYSTEM_TYPE_ORDER.indexOf(a.name) - SYSTEM_TYPE_ORDER.indexOf(b.name));
+
+  const user = await prisma.user.findUnique({ where: { email: DEMO_USER_EMAIL } });
+  if (!user) return types.map((type) => ({ ...type, itemCount: 0 }));
+
+  const counts = await prisma.item.groupBy({
+    by: ["itemTypeId"],
+    where: { userId: user.id },
+    _count: { _all: true },
+  });
+  const countByTypeId = new Map(counts.map((c) => [c.itemTypeId, c._count._all]));
+
+  return types.map((type) => ({ ...type, itemCount: countByTypeId.get(type.id) ?? 0 }));
 }

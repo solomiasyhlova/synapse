@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Clock, Folder, LayoutGrid, Lock, Settings, Star } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Clock, Folder, LayoutGrid, Lock, Settings, Star } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
-import { collections, currentUser, itemTypes } from "@/lib/mock-data";
+import type { CollectionWithStats } from "@/lib/db/collections";
+import type { ItemTypeWithCount } from "@/lib/db/items";
+import { currentUser } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -17,8 +20,6 @@ const navItems = [
   { label: "Favorites", href: "/favorites", icon: Star },
   { label: "Recent", href: "/recent", icon: Clock },
 ];
-
-const RECENT_COLLECTIONS_LIMIT = 5;
 
 function getInitials(name: string) {
   return name
@@ -36,17 +37,44 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-interface SidebarContentProps {
-  collapsed?: boolean;
+function SectionToggle({
+  label,
+  isOpen,
+  onToggle,
+}: {
+  label: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={isOpen}
+      className="flex w-full items-center justify-between rounded-md px-2 pb-1 text-xs font-semibold tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <span>{label}</span>
+      <ChevronDown className={cn("size-3.5 shrink-0 transition-transform", !isOpen && "-rotate-90")} />
+    </button>
+  );
 }
 
-export function SidebarContent({ collapsed = false }: SidebarContentProps) {
-  const pathname = usePathname();
+interface SidebarContentProps {
+  collapsed?: boolean;
+  itemTypes: ItemTypeWithCount[];
+  favoriteCollections: CollectionWithStats[];
+  recentCollections: CollectionWithStats[];
+}
 
-  const favoriteCollections = collections.filter((collection) => collection.isFavorite);
-  const recentCollections = [...collections]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, RECENT_COLLECTIONS_LIMIT);
+export function SidebarContent({
+  collapsed = false,
+  itemTypes,
+  favoriteCollections,
+  recentCollections,
+}: SidebarContentProps) {
+  const pathname = usePathname();
+  const [isTypesOpen, setTypesOpen] = useState(true);
+  const [isCollectionsOpen, setCollectionsOpen] = useState(true);
 
   return (
     <div className="flex h-full flex-col justify-between">
@@ -77,8 +105,14 @@ export function SidebarContent({ collapsed = false }: SidebarContentProps) {
         <Separator />
 
         <div>
-          {!collapsed && <SectionLabel>Types</SectionLabel>}
-          <nav className="space-y-0.5">
+          {!collapsed && (
+            <SectionToggle
+              label="Types"
+              isOpen={isTypesOpen}
+              onToggle={() => setTypesOpen((open) => !open)}
+            />
+          )}
+          <nav className={cn("space-y-0.5", !collapsed && !isTypesOpen && "hidden")}>
             {itemTypes.map((type) => {
               const isLocked = (type.name === "file" || type.name === "image") && !currentUser.isPro;
               const href = `/items/${type.name}`;
@@ -104,8 +138,12 @@ export function SidebarContent({ collapsed = false }: SidebarContentProps) {
                   {!collapsed && (
                     <>
                       <span className="flex-1 truncate">{type.name}</span>
-                      {isLocked && (
+                      {isLocked ? (
                         <Lock className="size-3 shrink-0 text-muted-foreground" />
+                      ) : (
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {type.itemCount}
+                        </span>
                       )}
                     </>
                   )}
@@ -115,46 +153,68 @@ export function SidebarContent({ collapsed = false }: SidebarContentProps) {
           </nav>
         </div>
 
-        {favoriteCollections.length > 0 && (
-          <div>
-            {!collapsed && <SectionLabel>Favorite collections</SectionLabel>}
-            <nav className="space-y-0.5">
-              {favoriteCollections.map((collection) => (
-                <Link
-                  key={collection.id}
-                  href={`/collections/${collection.id}`}
-                  title={collapsed ? collection.name : undefined}
-                  className={cn(
-                    "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                    collapsed && "justify-center px-0",
-                  )}
-                >
-                  <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
-                  {!collapsed && <span className="truncate">{collection.name}</span>}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        )}
-
         <div>
-          {!collapsed && <SectionLabel>Recent collections</SectionLabel>}
-          <nav className="space-y-0.5">
-            {recentCollections.map((collection) => (
-              <Link
-                key={collection.id}
-                href={`/collections/${collection.id}`}
-                title={collapsed ? collection.name : undefined}
-                className={cn(
-                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                  collapsed && "justify-center px-0",
-                )}
-              >
-                <Clock className="size-4 shrink-0" />
-                {!collapsed && <span className="truncate">{collection.name}</span>}
-              </Link>
-            ))}
-          </nav>
+          {!collapsed && (
+            <SectionToggle
+              label="Collections"
+              isOpen={isCollectionsOpen}
+              onToggle={() => setCollectionsOpen((open) => !open)}
+            />
+          )}
+          <div className={cn("space-y-4", !collapsed && !isCollectionsOpen && "hidden")}>
+            {favoriteCollections.length > 0 && (
+              <div>
+                {!collapsed && <SectionLabel>Favorite collections</SectionLabel>}
+                <nav className="space-y-0.5">
+                  {favoriteCollections.map((collection) => (
+                    <Link
+                      key={collection.id}
+                      href={`/collections/${collection.id}`}
+                      title={collapsed ? collection.name : undefined}
+                      className={cn(
+                        "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                        collapsed && "justify-center px-0",
+                      )}
+                    >
+                      <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
+                      {!collapsed && <span className="truncate">{collection.name}</span>}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            )}
+
+            <div>
+              {!collapsed && <SectionLabel>Recent collections</SectionLabel>}
+              <nav className="space-y-0.5">
+                {recentCollections.map((collection) => (
+                  <Link
+                    key={collection.id}
+                    href={`/collections/${collection.id}`}
+                    title={collapsed ? collection.name : undefined}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                      collapsed && "justify-center px-0",
+                    )}
+                  >
+                    <span
+                      className="size-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: collection.accentColor ?? "var(--color-muted-foreground)" }}
+                    />
+                    {!collapsed && <span className="truncate">{collection.name}</span>}
+                  </Link>
+                ))}
+              </nav>
+              {!collapsed && (
+                <Link
+                  href="/collections"
+                  className="block px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  View all collections
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -206,7 +266,13 @@ export function SidebarContent({ collapsed = false }: SidebarContentProps) {
   );
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  itemTypes: ItemTypeWithCount[];
+  favoriteCollections: CollectionWithStats[];
+  recentCollections: CollectionWithStats[];
+}
+
+export function Sidebar({ itemTypes, favoriteCollections, recentCollections }: SidebarProps) {
   const { isCollapsed } = useSidebar();
 
   return (
@@ -216,7 +282,12 @@ export function Sidebar() {
         isCollapsed ? "md:w-16" : "md:w-64",
       )}
     >
-      <SidebarContent collapsed={isCollapsed} />
+      <SidebarContent
+        collapsed={isCollapsed}
+        itemTypes={itemTypes}
+        favoriteCollections={favoriteCollections}
+        recentCollections={recentCollections}
+      />
     </aside>
   );
 }
