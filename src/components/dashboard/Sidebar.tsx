@@ -168,34 +168,39 @@ export function SidebarContent({ collapsed = false }: SidebarContentProps) {
           </div>
         )}
 
-        <Link
-          href="/settings"
-          title={collapsed ? "Settings" : undefined}
-          className={cn(
-            "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-            collapsed && "justify-center px-0",
-          )}
-        >
-          <Settings className="size-4 shrink-0" />
-          {!collapsed && <span>Settings</span>}
-        </Link>
-
-        <div
-          className={cn(
-            "flex items-center gap-2 rounded-md px-2 py-1.5",
-            collapsed && "justify-center px-0",
-          )}
-        >
-          <Avatar size="sm">
-            <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
-          </Avatar>
-          {!collapsed && (
+        {collapsed ? (
+          <>
+            <Link
+              href="/settings"
+              title="Settings"
+              className="flex items-center justify-center rounded-md px-0 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <Settings className="size-4 shrink-0" />
+            </Link>
+            <div className="flex items-center justify-center rounded-md px-0 py-1.5">
+              <Avatar size="sm">
+                <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
+              </Avatar>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
+            <Avatar size="sm" className="shrink-0">
+              <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
+            </Avatar>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{currentUser.name}</p>
               <p className="truncate text-xs text-muted-foreground">{currentUser.email}</p>
             </div>
-          )}
-        </div>
+            <Link
+              href="/settings"
+              title="Settings"
+              className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <Settings className="size-4" />
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -207,7 +212,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "hidden shrink-0 border-r border-border transition-[width] duration-150 md:flex md:flex-col",
+        "hidden h-full shrink-0 border-r border-border transition-[width] duration-150 md:flex md:flex-col",
         isCollapsed ? "md:w-16" : "md:w-64",
       )}
     >

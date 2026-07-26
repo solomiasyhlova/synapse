@@ -2,19 +2,10 @@
 
 import { Bell, Menu, Plus, Search } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NewCollectionDialog } from "@/components/dashboard/NewCollectionDialog";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
-import { currentUser } from "@/lib/mock-data";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
 
 export function TopBar() {
   const { setMobileOpen } = useSidebar();
@@ -42,13 +33,11 @@ export function TopBar() {
         <Button variant="ghost" size="icon" aria-label="Notifications">
           <Bell />
         </Button>
+        <NewCollectionDialog />
         <Button>
           <Plus />
           New item
         </Button>
-        <Avatar>
-          <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
-        </Avatar>
       </div>
     </div>
   );

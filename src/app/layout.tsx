@@ -22,7 +22,7 @@ export default function RootLayout({
       lang="en"
       className={`dark ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="h-full flex flex-col overflow-hidden">{children}</body>
     </html>
   );
 }
