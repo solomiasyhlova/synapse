@@ -1,5 +1,24 @@
-import * as LucideIcons from "lucide-react";
+import {
+  Code,
+  Sparkles,
+  Terminal,
+  StickyNote,
+  Link,
+  File,
+  Image,
+  Circle,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
+const ICONS: Record<string, LucideIcon> = {
+  Code,
+  Sparkles,
+  Terminal,
+  StickyNote,
+  Link,
+  File,
+  Image,
+};
 
 export function TypeIcon({
   name,
@@ -10,7 +29,6 @@ export function TypeIcon({
   className?: string;
   style?: React.CSSProperties;
 }) {
-  const icons = LucideIcons as unknown as Record<string, LucideIcon>;
-  const Icon = icons[name] ?? LucideIcons.Circle;
+  const Icon = ICONS[name] ?? Circle;
   return <Icon className={className} style={style} />;
 }
