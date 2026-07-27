@@ -1,21 +1,18 @@
 # Current Feature
 
 <!-- Feature Name -->
-Code Quality Quick Wins (Code Scan Cleanup)
 
 ## Status
 
-In Progress
+<!-- Not Started|In Progress|Completed -->
 
 ## Goals
 
-- Replace `TypeIcon.tsx`'s `import * as LucideIcons` + dynamic `Record` lookup/cast with an explicit icon-name → component map (fixes tree-shaking, restores type safety)
-- Add `zod` and `vitest` as explicit devDependencies in `package.json` (currently only pulled in transitively; both are required by coding-standards.md)
-- Redirect the root `/` route to `/dashboard` instead of rendering a placeholder `<h1>`
+<!-- Goals & requirements -->
 
 ## Notes
 
-Sourced from the code-scanner findings (2026-07-27). Deliberately excludes anything auth-related — auth isn't implemented yet, so `DEMO_USER_EMAIL` stays as-is. Also excludes items with more risk/process overhead: composite DB indexes (needs a Prisma migration), splitting up `Sidebar.tsx`, and wiring `NewCollectionDialog` to a real write path.
+<!-- Any extra notes -->
 
 ## History
 
@@ -32,3 +29,4 @@ Sourced from the code-scanner findings (2026-07-27). Deliberately excludes anyth
 - Dashboard Items
 - Stats & Sidebar
 - Add Pro Badge to Sidebar
+- Code Quality Quick Wins (Code Scan Cleanup): explicit TypeIcon icon map, zod/vitest devDependencies, root redirect to /dashboard
