@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, Clock, Folder, LayoutGrid, Lock, Settings, Star } from "lucide-react";
+import { ChevronDown, Clock, Folder, LayoutGrid, Settings, Star } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
@@ -139,7 +140,12 @@ export function SidebarContent({
                     <>
                       <span className="flex-1 truncate">{type.name}</span>
                       {isLocked ? (
-                        <Lock className="size-3 shrink-0 text-muted-foreground" />
+                        <Badge
+                          variant="outline"
+                          className="h-4 shrink-0 px-1.5 text-[10px] font-semibold tracking-wide text-muted-foreground"
+                        >
+                          PRO
+                        </Badge>
                       ) : (
                         <span className="shrink-0 text-xs text-muted-foreground">
                           {type.itemCount}
