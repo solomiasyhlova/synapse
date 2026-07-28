@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
+
+import { ToastProvider } from "@/components/ui/toast";
+
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -22,7 +25,9 @@ export default function RootLayout({
       lang="en"
       className={`dark ${geistMono.variable} h-full antialiased`}
     >
-      <body className="h-full flex flex-col overflow-hidden">{children}</body>
+      <body className="h-full flex flex-col overflow-hidden">
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }

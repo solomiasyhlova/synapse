@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ChevronDown, Clock, Folder, LayoutGrid, Settings, Star } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
+import { UserMenu } from "@/components/dashboard/UserMenu";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
 import type { CollectionWithStats } from "@/lib/db/collections";
 import type { ItemTypeWithCount } from "@/lib/db/items";
@@ -21,14 +21,6 @@ const navItems = [
   { label: "Favorites", href: "/favorites", icon: Star },
   { label: "Recent", href: "/recent", icon: Clock },
 ];
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -60,11 +52,18 @@ function SectionToggle({
   );
 }
 
+export interface SidebarUser {
+  name: string;
+  email: string;
+  image?: string | null;
+}
+
 interface SidebarContentProps {
   collapsed?: boolean;
   itemTypes: ItemTypeWithCount[];
   favoriteCollections: CollectionWithStats[];
   recentCollections: CollectionWithStats[];
+  user: SidebarUser;
 }
 
 export function SidebarContent({
@@ -72,6 +71,7 @@ export function SidebarContent({
   itemTypes,
   favoriteCollections,
   recentCollections,
+  user,
 }: SidebarContentProps) {
   const pathname = usePathname();
   const [isTypesOpen, setTypesOpen] = useState(true);
@@ -243,29 +243,19 @@ export function SidebarContent({
             >
               <Settings className="size-4 shrink-0" />
             </Link>
-            <div className="flex items-center justify-center rounded-md px-0 py-1.5">
-              <Avatar size="sm">
-                <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
-              </Avatar>
-            </div>
+            <UserMenu user={user} collapsed />
           </>
         ) : (
-          <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
-            <Avatar size="sm" className="shrink-0">
-              <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{currentUser.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{currentUser.email}</p>
-            </div>
+          <>
+            <UserMenu user={user} />
             <Link
               href="/settings"
-              title="Settings"
-              className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              <Settings className="size-4" />
+              <Settings className="size-4 shrink-0" />
+              <span>Settings</span>
             </Link>
-          </div>
+          </>
         )}
       </div>
     </div>
@@ -276,9 +266,10 @@ interface SidebarProps {
   itemTypes: ItemTypeWithCount[];
   favoriteCollections: CollectionWithStats[];
   recentCollections: CollectionWithStats[];
+  user: SidebarUser;
 }
 
-export function Sidebar({ itemTypes, favoriteCollections, recentCollections }: SidebarProps) {
+export function Sidebar({ itemTypes, favoriteCollections, recentCollections, user }: SidebarProps) {
   const { isCollapsed } = useSidebar();
 
   return (
@@ -293,6 +284,7 @@ export function Sidebar({ itemTypes, favoriteCollections, recentCollections }: S
         itemTypes={itemTypes}
         favoriteCollections={favoriteCollections}
         recentCollections={recentCollections}
+        user={user}
       />
     </aside>
   );

@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { Logo } from "@/components/dashboard/Logo";
 import { MobileSidebar } from "@/components/dashboard/MobileSidebar";
 import { Sidebar } from "@/components/dashboard/Sidebar";
@@ -11,11 +12,18 @@ export default async function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [itemTypes, favoriteCollections, recentCollections] = await Promise.all([
+  const [session, itemTypes, favoriteCollections, recentCollections] = await Promise.all([
+    auth(),
     getSystemItemTypes(),
     getFavoriteCollections(),
     getRecentCollections(5),
   ]);
+
+  const user = {
+    name: session?.user?.name ?? "Unknown user",
+    email: session?.user?.email ?? "",
+    image: session?.user?.image,
+  };
 
   return (
     <SidebarProvider>
@@ -29,6 +37,7 @@ export default async function DashboardLayout({
             itemTypes={itemTypes}
             favoriteCollections={favoriteCollections}
             recentCollections={recentCollections}
+            user={user}
           />
           {children}
         </div>
@@ -37,6 +46,7 @@ export default async function DashboardLayout({
         itemTypes={itemTypes}
         favoriteCollections={favoriteCollections}
         recentCollections={recentCollections}
+        user={user}
       />
     </SidebarProvider>
   );

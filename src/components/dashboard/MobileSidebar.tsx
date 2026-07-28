@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 
-import { SidebarContent } from "@/components/dashboard/Sidebar";
+import { SidebarContent, type SidebarUser } from "@/components/dashboard/Sidebar";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
 import {
   Sheet,
@@ -17,12 +17,14 @@ interface MobileSidebarProps {
   itemTypes: ItemTypeWithCount[];
   favoriteCollections: CollectionWithStats[];
   recentCollections: CollectionWithStats[];
+  user: SidebarUser;
 }
 
 export function MobileSidebar({
   itemTypes,
   favoriteCollections,
   recentCollections,
+  user,
 }: MobileSidebarProps) {
   const { isMobileOpen, setMobileOpen } = useSidebar();
 
@@ -40,6 +42,7 @@ export function MobileSidebar({
             itemTypes={itemTypes}
             favoriteCollections={favoriteCollections}
             recentCollections={recentCollections}
+            user={user}
           />
         </div>
       </SheetContent>
