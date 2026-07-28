@@ -44,8 +44,8 @@ export interface MockCollection {
 
 export const currentUser: MockUser = {
   id: "user-1",
-  name: "Jordan Davis",
-  email: "jordan@example.com",
+  name: "Demo User",
+  email: "demouser@example.com",
   image: null,
   isPro: false,
 };
