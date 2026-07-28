@@ -1,14 +1,18 @@
 "use server";
 
-import { AuthError } from "next-auth";
+import { AuthError, CredentialsSignin } from "next-auth";
 import { ZodError } from "zod";
 
 import { signIn, signOut } from "@/auth";
 import { signInSchema } from "@/lib/validations/auth";
+import { prisma } from "@/lib/prisma";
+import { createVerificationToken } from "@/lib/auth/verification-token";
+import { sendVerificationEmail } from "@/lib/email/send-verification-email";
 
 interface ActionResult {
   success: boolean;
   error?: string;
+  code?: string;
 }
 
 export async function signInWithCredentials(
@@ -36,13 +40,41 @@ export async function signInWithCredentials(
     }
     if (error instanceof AuthError) {
       switch (error.type) {
-        case "CredentialsSignin":
+        case "CredentialsSignin": {
+          const code = error instanceof CredentialsSignin ? error.code : undefined;
+          if (code === "email_not_verified") {
+            return {
+              success: false,
+              error: "Please verify your email before signing in.",
+              code,
+            };
+          }
           return { success: false, error: "Invalid email or password" };
+        }
         default:
           return { success: false, error: "Something went wrong. Please try again." };
       }
     }
     throw error;
+  }
+}
+
+export async function resendVerificationEmail(email: string): Promise<ActionResult> {
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Don't reveal whether the account exists
+    if (!user || user.emailVerified) {
+      return { success: true };
+    }
+
+    const token = await createVerificationToken(email);
+    await sendVerificationEmail(email, token);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to resend verification email:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
   }
 }
 

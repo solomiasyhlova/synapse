@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signInSchema } from "@/lib/validations/auth";
+import { EmailNotVerifiedError } from "@/lib/auth/errors";
 import authConfig from "./auth.config";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
@@ -34,6 +35,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
           const isValid = await bcrypt.compare(password, user.passwordHash);
           if (!isValid) return null;
+
+          if (!user.emailVerified) throw new EmailNotVerifiedError();
 
           return user;
         } catch (error) {

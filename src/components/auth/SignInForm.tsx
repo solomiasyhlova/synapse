@@ -1,14 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
-import { signInWithCredentials, signInWithGitHub } from "@/actions/auth";
+import { resendVerificationEmail, signInWithCredentials, signInWithGitHub } from "@/actions/auth";
 import { GitHubIcon } from "@/components/auth/GitHubIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toastManager } from "@/lib/toast";
 
-const initialState = { success: false, error: undefined as string | undefined };
+const initialState = {
+  success: false,
+  error: undefined as string | undefined,
+  code: undefined as string | undefined,
+};
 
 interface SignInFormProps {
   callbackUrl?: string;
@@ -16,9 +21,24 @@ interface SignInFormProps {
 
 export function SignInForm({ callbackUrl }: SignInFormProps) {
   const [state, formAction, isPending] = useActionState(signInWithCredentials, initialState);
+  const [email, setEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
 
   async function handleGitHubSignIn() {
     await signInWithGitHub(callbackUrl ?? "");
+  }
+
+  async function handleResend() {
+    setIsResending(true);
+    try {
+      await resendVerificationEmail(email);
+      toastManager.add({
+        title: "Verification email sent",
+        description: "Check your inbox for the verification link.",
+      });
+    } finally {
+      setIsResending(false);
+    }
   }
 
   return (
@@ -29,7 +49,15 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
           <label htmlFor="email" className="text-sm font-medium">
             Email
           </label>
-          <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
         </div>
         <div className="space-y-1">
           <label htmlFor="password" className="text-sm font-medium">
@@ -38,6 +66,17 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
           <Input id="password" name="password" type="password" placeholder="••••••••" required />
         </div>
         {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+        {state.code === "email_not_verified" && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={isResending}
+            onClick={handleResend}
+          >
+            {isResending ? "Sending..." : "Resend verification email"}
+          </Button>
+        )}
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? "Signing in..." : "Sign in"}
         </Button>

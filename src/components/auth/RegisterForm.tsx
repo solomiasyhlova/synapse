@@ -48,9 +48,9 @@ export function RegisterForm() {
 
       toastManager.add({
         title: "Account created",
-        description: "You can now log in with your new account.",
+        description: "Check your email to verify your account before signing in.",
       });
-      router.push("/sign-in");
+      router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

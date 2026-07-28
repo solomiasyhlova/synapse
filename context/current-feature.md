@@ -1,10 +1,25 @@
-# Current Feature
+# Current Feature: Email Verification on Register
 
 ## Status
 
+In Progress
+
 ## Goals
 
+- New users who register with email/password receive a verification email (via Resend) containing a link
+- Clicking the link verifies the user's email (sets `User.emailVerified`)
+- Unverified users are prevented from signing in / are prompted to verify, until they click the link
+- Users can request the verification email be resent
+
 ## Notes
+
+- Email provider is **Resend**. `RESEND_API_KEY` already exists in `.env`, but the `resend` npm package is not yet installed.
+- `User.emailVerified DateTime?` already exists on the Prisma schema and is currently unused.
+- The `VerificationToken` model (`identifier`, `token`, `expires`, `@@unique([identifier, token])`) already exists (standard Auth.js model) and can likely be reused for verification tokens instead of adding a new model.
+- Registration currently happens in `src/app/api/auth/register/route.ts` — creates the user with `passwordHash`, no email is sent today.
+- Credentials `authorize()` in `src/auth.ts` currently does not check `emailVerified` — need to decide whether/how unverified users are blocked at sign-in.
+- Will need a new route/page to handle the verification link click (e.g. `/api/auth/verify` or `/verify-email?token=...`).
+- Any schema changes (if the `VerificationToken` model needs adjustment) must go through `prisma migrate dev`, never `db push`, per project rules.
 
 ## History
 
