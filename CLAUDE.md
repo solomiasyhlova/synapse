@@ -19,3 +19,11 @@ Read the following to get the full context of the project:
 - **Lint**: `npm run lint`
 
 **IMPORTANT:** Do not add Claude to any commit messages
+
+## Neon MCP
+
+- **Project:** `synapse` (project ID `rapid-breeze-30098566`)
+- **Default branch to use:** `development` (branch ID `br-purple-recipe-axxd582k`)
+- Always pass this project and branch to Neon MCP tools unless told otherwise.
+- **NEVER** run queries or migrations against the `production` branch (`br-polished-cherry-ax1c090i`) unless the user explicitly says "production."
+- Never run destructive SQL (`DROP`, `DELETE`, `TRUNCATE`, unscoped `UPDATE`) without asking first, even on `development`.
