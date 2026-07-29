@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { auth } from "@/auth";
 import { Logo } from "@/components/dashboard/Logo";
 import { MobileSidebar } from "@/components/dashboard/MobileSidebar";
@@ -12,17 +14,19 @@ export default async function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [session, itemTypes, favoriteCollections, recentCollections] = await Promise.all([
-    auth(),
-    getSystemItemTypes(),
-    getFavoriteCollections(),
-    getRecentCollections(5),
+  const session = await auth();
+  if (!session?.user) redirect("/sign-in");
+
+  const [itemTypes, favoriteCollections, recentCollections] = await Promise.all([
+    getSystemItemTypes(session.user.id),
+    getFavoriteCollections(session.user.id),
+    getRecentCollections(session.user.id, 5),
   ]);
 
   const user = {
-    name: session?.user?.name ?? "Unknown user",
-    email: session?.user?.email ?? "",
-    image: session?.user?.image,
+    name: session.user.name ?? "Unknown user",
+    email: session.user.email ?? "",
+    image: session.user.image,
   };
 
   return (

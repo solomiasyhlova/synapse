@@ -3,8 +3,8 @@ import Link from "next/link";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
 import { getRecentCollections } from "@/lib/db/collections";
 
-export async function CollectionsSection() {
-  const recentCollections = await getRecentCollections();
+export async function CollectionsSection({ userId }: { userId: string }) {
+  const recentCollections = await getRecentCollections(userId);
 
   return (
     <section className="space-y-4">

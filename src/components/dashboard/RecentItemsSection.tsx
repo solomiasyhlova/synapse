@@ -3,8 +3,8 @@ import { Clock } from "lucide-react";
 import { ItemRow } from "@/components/dashboard/ItemRow";
 import { getRecentItems } from "@/lib/db/items";
 
-export async function RecentItemsSection() {
-  const recentItems = await getRecentItems();
+export async function RecentItemsSection({ userId }: { userId: string }) {
+  const recentItems = await getRecentItems(userId);
 
   return (
     <section className="space-y-4">

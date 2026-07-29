@@ -1,8 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { getDashboardStats } from "@/lib/db/stats";
 
-export async function StatsCards() {
-  const dashboardStats = await getDashboardStats();
+export async function StatsCards({ userId }: { userId: string }) {
+  const dashboardStats = await getDashboardStats(userId);
 
   const stats = [
     { label: "Total items", value: dashboardStats.totalItems },

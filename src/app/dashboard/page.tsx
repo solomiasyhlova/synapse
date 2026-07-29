@@ -1,9 +1,17 @@
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
 import { CollectionsSection } from "@/components/dashboard/CollectionsSection";
 import { PinnedItemsSection } from "@/components/dashboard/PinnedItemsSection";
 import { RecentItemsSection } from "@/components/dashboard/RecentItemsSection";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/sign-in");
+
+  const userId = session.user.id;
+
   return (
     <main className="flex-1 space-y-8 overflow-y-auto p-6">
       <div>
@@ -12,10 +20,10 @@ export default function DashboardPage() {
           Everything you&apos;ve saved, in one searchable hub.
         </p>
       </div>
-      <StatsCards />
-      <CollectionsSection />
-      <PinnedItemsSection />
-      <RecentItemsSection />
+      <StatsCards userId={userId} />
+      <CollectionsSection userId={userId} />
+      <PinnedItemsSection userId={userId} />
+      <RecentItemsSection userId={userId} />
     </main>
   );
 }
