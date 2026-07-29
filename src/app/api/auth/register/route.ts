@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
     const verificationRequired = isEmailVerificationEnabled();
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
       data: {
         name,
