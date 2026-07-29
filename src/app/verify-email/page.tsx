@@ -1,15 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { AuthCard } from "@/components/auth/AuthCard";
 import { ResendVerificationButton } from "@/components/auth/ResendVerificationButton";
 import { Button } from "@/components/ui/button";
 import { consumeVerificationToken } from "@/lib/auth/verification-token";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
 
 interface VerifyEmailPageProps {
   searchParams: Promise<{ token?: string; email?: string }>;
 }
 
 export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageProps) {
+  if (!isEmailVerificationEnabled()) redirect("/sign-in");
+
   const { token, email } = await searchParams;
 
   if (!token) {

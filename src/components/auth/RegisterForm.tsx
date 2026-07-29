@@ -46,11 +46,19 @@ export function RegisterForm() {
         return;
       }
 
-      toastManager.add({
-        title: "Account created",
-        description: "Check your email to verify your account before signing in.",
-      });
-      router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
+      if (result.data?.emailVerificationRequired) {
+        toastManager.add({
+          title: "Account created",
+          description: "Check your email to verify your account before signing in.",
+        });
+        router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
+      } else {
+        toastManager.add({
+          title: "Account created",
+          description: "You can now sign in.",
+        });
+        router.push("/sign-in");
+      }
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

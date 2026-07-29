@@ -8,6 +8,7 @@ import { signInSchema } from "@/lib/validations/auth";
 import { prisma } from "@/lib/prisma";
 import { createVerificationToken } from "@/lib/auth/verification-token";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
 
 interface ActionResult {
   success: boolean;
@@ -60,6 +61,8 @@ export async function signInWithCredentials(
 }
 
 export async function resendVerificationEmail(email: string): Promise<ActionResult> {
+  if (!isEmailVerificationEnabled()) return { success: true };
+
   try {
     const user = await prisma.user.findUnique({ where: { email } });
 
