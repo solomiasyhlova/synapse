@@ -4,10 +4,15 @@ import { AuthError, CredentialsSignin } from "next-auth";
 import { ZodError } from "zod";
 
 import { signIn, signOut } from "@/auth";
-import { signInSchema } from "@/lib/validations/auth";
+import { signInSchema, forgotPasswordSchema, resetPasswordSchema } from "@/lib/validations/auth";
 import { prisma } from "@/lib/prisma";
 import { createVerificationToken } from "@/lib/auth/verification-token";
+import {
+  createPasswordResetToken,
+  consumePasswordResetToken,
+} from "@/lib/auth/password-reset-token";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
+import { sendPasswordResetEmail } from "@/lib/email/send-password-reset-email";
 import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
 
 interface ActionResult {
@@ -77,6 +82,58 @@ export async function resendVerificationEmail(email: string): Promise<ActionResu
     return { success: true };
   } catch (error) {
     console.error("Failed to resend verification email:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function requestPasswordReset(email: string): Promise<ActionResult> {
+  try {
+    const { email: validEmail } = await forgotPasswordSchema.parseAsync({ email });
+
+    // Don't reveal whether the account exists, or whether it's a GitHub-only account
+    const user = await prisma.user.findUnique({ where: { email: validEmail } });
+    if (user?.passwordHash) {
+      const token = await createPasswordResetToken(validEmail);
+      await sendPasswordResetEmail(validEmail, token);
+    }
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
+    }
+    console.error("Failed to request password reset:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function resetPassword(
+  token: string,
+  password: string,
+  confirmPassword: string
+): Promise<ActionResult> {
+  try {
+    const { password: validPassword } = await resetPasswordSchema.parseAsync({
+      password,
+      confirmPassword,
+    });
+
+    const result = await consumePasswordResetToken(token, validPassword);
+
+    if (result.status === "reset") return { success: true };
+    if (result.status === "expired") {
+      return {
+        success: false,
+        error: "This reset link has expired. Request a new one.",
+        code: "expired",
+      };
+    }
+    return { success: false, error: "This reset link is invalid.", code: "invalid" };
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
+    }
+    console.error("Failed to reset password:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

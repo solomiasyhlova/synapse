@@ -25,7 +25,7 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
             : "Click the link we sent you to verify your account."}
         </p>
         {email && <ResendVerificationButton email={email} />}
-        <Button render={<Link href="/sign-in" />} variant="ghost" className="w-full">
+        <Button render={<Link href="/sign-in" />} nativeButton={false} variant="ghost" className="w-full">
           Back to sign in
         </Button>
       </AuthCard>
@@ -38,7 +38,7 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
     return (
       <AuthCard title="Email verified" description="Your email has been verified.">
         <p className="text-sm text-muted-foreground">You can now sign in to your account.</p>
-        <Button render={<Link href="/sign-in" />} className="w-full">
+        <Button render={<Link href="/sign-in" />} nativeButton={false} className="w-full">
           Sign in
         </Button>
       </AuthCard>
@@ -59,7 +59,7 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
       <p className="text-sm text-muted-foreground">
         The link may have already been used. Try signing in, or register again if needed.
       </p>
-      <Button render={<Link href="/sign-in" />} variant="ghost" className="w-full">
+      <Button render={<Link href="/sign-in" />} nativeButton={false} variant="ghost" className="w-full">
         Back to sign in
       </Button>
     </AuthCard>
