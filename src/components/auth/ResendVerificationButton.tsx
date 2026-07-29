@@ -16,7 +16,14 @@ export function ResendVerificationButton({ email }: ResendVerificationButtonProp
   async function handleClick() {
     setIsPending(true);
     try {
-      await resendVerificationEmail(email);
+      const result = await resendVerificationEmail(email);
+      if (!result.success) {
+        toastManager.add({
+          title: "Couldn't resend email",
+          description: result.error ?? "Something went wrong. Please try again.",
+        });
+        return;
+      }
       toastManager.add({
         title: "Verification email sent",
         description: "Check your inbox for the verification link.",

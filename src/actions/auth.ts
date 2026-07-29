@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { AuthError, CredentialsSignin } from "next-auth";
 import { ZodError } from "zod";
 
@@ -14,6 +15,7 @@ import {
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset-email";
 import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
+import { checkRateLimit, getClientIp, rateLimitMessage, rateLimiters } from "@/lib/rate-limit";
 
 interface ActionResult {
   success: boolean;
@@ -30,6 +32,12 @@ export async function signInWithCredentials(
       email: formData.get("email"),
       password: formData.get("password"),
     });
+
+    const ip = getClientIp(await headers());
+    const rateLimit = await checkRateLimit(rateLimiters.login, `${ip}:${email}`);
+    if (!rateLimit.success) {
+      return { success: false, error: rateLimitMessage(rateLimit.reset) };
+    }
 
     const callbackUrl = formData.get("callbackUrl");
 
@@ -69,6 +77,12 @@ export async function resendVerificationEmail(email: string): Promise<ActionResu
   if (!isEmailVerificationEnabled()) return { success: true };
 
   try {
+    const ip = getClientIp(await headers());
+    const rateLimit = await checkRateLimit(rateLimiters.resendVerification, `${ip}:${email}`);
+    if (!rateLimit.success) {
+      return { success: false, error: rateLimitMessage(rateLimit.reset) };
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
 
     // Don't reveal whether the account exists
@@ -89,6 +103,12 @@ export async function resendVerificationEmail(email: string): Promise<ActionResu
 export async function requestPasswordReset(email: string): Promise<ActionResult> {
   try {
     const { email: validEmail } = await forgotPasswordSchema.parseAsync({ email });
+
+    const ip = getClientIp(await headers());
+    const rateLimit = await checkRateLimit(rateLimiters.forgotPassword, ip);
+    if (!rateLimit.success) {
+      return { success: false, error: rateLimitMessage(rateLimit.reset) };
+    }
 
     // Don't reveal whether the account exists, or whether it's a GitHub-only account
     const user = await prisma.user.findUnique({ where: { email: validEmail } });
@@ -117,6 +137,12 @@ export async function resetPassword(
       password,
       confirmPassword,
     });
+
+    const ip = getClientIp(await headers());
+    const rateLimit = await checkRateLimit(rateLimiters.resetPassword, ip);
+    if (!rateLimit.success) {
+      return { success: false, error: rateLimitMessage(rateLimit.reset) };
+    }
 
     const result = await consumePasswordResetToken(token, validPassword);
 

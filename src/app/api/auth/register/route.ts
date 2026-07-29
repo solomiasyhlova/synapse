@@ -6,9 +6,22 @@ import { registerSchema } from "@/lib/validations/auth";
 import { createVerificationToken } from "@/lib/auth/verification-token";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
 import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
+import { checkRateLimit, getClientIp, rateLimitMessage, rateLimiters } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request.headers);
+    const rateLimit = await checkRateLimit(rateLimiters.register, ip);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, error: rateLimitMessage(rateLimit.reset) },
+        {
+          status: 429,
+          headers: { "Retry-After": Math.ceil((rateLimit.reset - Date.now()) / 1000).toString() },
+        }
+      );
+    }
+
     const body = await request.json();
     const { name, email, password } = registerSchema.parse(body);
 
