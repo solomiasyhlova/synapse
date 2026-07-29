@@ -1,34 +1,10 @@
-# Current Feature: Rate Limiting for Auth
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Add rate limiting to auth-related API routes to prevent brute force, credential stuffing, and abuse of email-sending endpoints
-- Use Upstash Redis with `@upstash/ratelimit` (sliding window algorithm) for serverless-compatible limiting
-- Create a reusable rate limiting utility at `src/lib/rate-limit.ts`
-- Protect these endpoints:
-  - `/api/auth/callback/credentials` (login) — 5 attempts / 15 min, keyed by IP + email
-  - `/api/auth/register` — 3 attempts / 1 hour, keyed by IP
-  - `/api/auth/forgot-password` — 3 attempts / 1 hour, keyed by IP
-  - `/api/auth/reset-password` — 5 attempts / 15 min, keyed by IP
-  - `/api/auth/resend-verification` — 3 attempts / 15 min, keyed by IP + email
-- Return 429 Too Many Requests with `{ error: "Too many attempts. Please try again in X minutes." }` and a `Retry-After` header
-- Display user-friendly rate limit errors on the frontend via toast
-
 ## Notes
-
-- Extract IP from `x-forwarded-for` header (Vercel) or request
-- Combine IP + identifier (email) where applicable for tighter limits
-- Rate limit checks should return `{ success, remaining, reset }`
-- Env vars needed: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
-- Upstash free tier allows 10k requests/day (sufficient for auth limiting)
-- Rate limiting should fail open (allow request) if Upstash is unavailable
-- Login limiting is tricky with NextAuth credentials — may need a custom sign-in handler since `/api/auth/callback/credentials` is handled internally by NextAuth
-- Consider rate limiting middleware for a cleaner implementation later
-- Source spec: `context/features/rate-limiting-spec.md`
 
 ## History
 
@@ -53,3 +29,4 @@ In Progress
 - Email Verification Toggle: EMAIL_VERIFICATION_ENABLED env flag (src/lib/auth/email-verification.ts, default enabled, "false" disables) — register route skips token/email and marks users verified immediately, auth.ts authorize() skips the unverified check, RegisterForm and /verify-email route around it so no UI dead-ends when disabled
 - Forgot Password: /forgot-password and /reset-password pages, requestPasswordReset/resetPassword server actions (src/actions/auth.ts), password reset tokens reuse the VerificationToken model via a namespaced identifier (src/lib/auth/password-reset-token.ts) to avoid colliding with email-verification tokens, sendPasswordResetEmail via Resend (src/lib/email/send-password-reset-email.ts), 1-hour token TTL, GitHub-only accounts silently skipped (no passwordHash), "Forgot password?" link added to SignInForm, also fixed a pre-existing Base UI nativeButton warning on Button+Link usages across auth pages
 - Profile Page: expanded /profile with real per-user data (src/lib/db/profile.ts using session.user.id instead of the demo-user pattern) — member-since date, usage stats and item-type breakdown (ProfileStats.tsx), ChangePasswordDialog (email/password accounts only, gated on passwordHash) and DeleteAccountDialog (type-to-confirm, cascading delete) via src/actions/profile.ts, changePasswordSchema added to src/lib/validations/auth.ts
+- Rate Limiting for Auth: Upstash Redis + @upstash/ratelimit sliding-window utility (src/lib/rate-limit.ts, fails open if Upstash unconfigured/unavailable), applied to register (API route, 429 + Retry-After header) and to login/forgot-password/reset-password/resend-verification (Server Actions in src/actions/auth.ts, surfaced via existing success/error result pattern since Server Actions can't set HTTP status codes), fixed a pre-existing bug where SignInForm/ResendVerificationButton always showed "email sent" regardless of the action result
