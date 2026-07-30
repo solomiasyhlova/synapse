@@ -21,6 +21,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeEditor } from "@/components/dashboard/CodeEditor";
+import { MarkdownEditor } from "@/components/dashboard/MarkdownEditor";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 import type { ItemDetail } from "@/lib/db/items";
@@ -29,6 +30,7 @@ import { cn } from "@/lib/utils";
 
 const CONTENT_TYPES = ["snippet", "prompt", "command", "note"];
 const LANGUAGE_TYPES = ["snippet", "command"];
+const MARKDOWN_TYPES = ["note", "prompt"];
 
 function formatDate(date: string | Date) {
   return new Date(date).toLocaleDateString("en-US", {
@@ -289,6 +291,11 @@ export function ItemDrawer() {
                     language={edit.language}
                     onChange={(value) => setEdit({ ...edit, content: value })}
                   />
+                ) : MARKDOWN_TYPES.includes(item.itemType.name) ? (
+                  <MarkdownEditor
+                    value={edit.content}
+                    onChange={(value) => setEdit({ ...edit, content: value })}
+                  />
                 ) : (
                   <Textarea
                     id="item-content"
@@ -385,6 +392,8 @@ export function ItemDrawer() {
                 <h3 className="text-xs font-medium text-muted-foreground">Content</h3>
                 {LANGUAGE_TYPES.includes(item.itemType.name) ? (
                   <CodeEditor value={item.content} language={item.language} readOnly />
+                ) : MARKDOWN_TYPES.includes(item.itemType.name) ? (
+                  <MarkdownEditor value={item.content} readOnly />
                 ) : (
                   <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs whitespace-pre-wrap">
                     {item.content}

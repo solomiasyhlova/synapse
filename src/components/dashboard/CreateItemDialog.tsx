@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeEditor } from "@/components/dashboard/CodeEditor";
+import { MarkdownEditor } from "@/components/dashboard/MarkdownEditor";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import type { ItemTypeWithCount } from "@/lib/db/items";
 import { toastManager } from "@/lib/toast";
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 
 const CONTENT_TYPES = ["snippet", "prompt", "command", "note"];
 const LANGUAGE_TYPES = ["snippet", "command"];
+const MARKDOWN_TYPES = ["note", "prompt"];
 const EXCLUDED_TYPES = ["file", "image"];
 
 const EMPTY_FORM = {
@@ -171,6 +173,11 @@ export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: Create
                 <CodeEditor
                   value={form.content}
                   language={form.language}
+                  onChange={(value) => setForm({ ...form, content: value })}
+                />
+              ) : MARKDOWN_TYPES.includes(typeName) ? (
+                <MarkdownEditor
+                  value={form.content}
                   onChange={(value) => setForm({ ...form, content: value })}
                 />
               ) : (

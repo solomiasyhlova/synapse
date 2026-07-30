@@ -128,3 +128,137 @@
     @apply font-sans;
     }
 }
+
+.markdown-preview {
+  color: oklch(0.87 0 0);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.markdown-preview > :first-child {
+  margin-top: 0;
+}
+
+.markdown-preview > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3,
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
+  font-weight: 600;
+  color: oklch(0.985 0 0);
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+
+.markdown-preview h1 {
+  font-size: 1.5em;
+}
+.markdown-preview h2 {
+  font-size: 1.3em;
+}
+.markdown-preview h3 {
+  font-size: 1.15em;
+}
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
+  font-size: 1em;
+}
+
+.markdown-preview p {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+}
+
+.markdown-preview a {
+  color: oklch(0.7 0.15 250);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown-preview a:hover {
+  color: oklch(0.78 0.15 250);
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+  padding-left: 1.5em;
+}
+
+.markdown-preview ul {
+  list-style: disc;
+}
+
+.markdown-preview ol {
+  list-style: decimal;
+}
+
+.markdown-preview li + li {
+  margin-top: 0.25em;
+}
+
+.markdown-preview blockquote {
+  margin: 0.75em 0;
+  padding-left: 0.875em;
+  border-left: 3px solid oklch(0.4 0 0);
+  color: oklch(0.708 0 0);
+}
+
+.markdown-preview code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background-color: oklch(1 0 0 / 10%);
+  border-radius: 0.25em;
+  padding: 0.15em 0.4em;
+}
+
+.markdown-preview pre {
+  margin: 0.75em 0;
+  padding: 0.75em;
+  border-radius: 0.5em;
+  background-color: oklch(0.1 0 0);
+  overflow-x: auto;
+}
+
+.markdown-preview pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 0.8em;
+}
+
+.markdown-preview table {
+  margin: 0.75em 0;
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9em;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid oklch(1 0 0 / 15%);
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+
+.markdown-preview th {
+  background-color: oklch(1 0 0 / 8%);
+  font-weight: 600;
+}
+
+.markdown-preview hr {
+  margin: 1em 0;
+  border: none;
+  border-top: 1px solid oklch(1 0 0 / 15%);
+}
+
+.markdown-preview img {
+  max-width: 100%;
+  border-radius: 0.375em;
+}
