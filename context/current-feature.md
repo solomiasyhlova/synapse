@@ -1,39 +1,16 @@
-# Current Feature: Markdown Editor
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started | In Progress | Complete -->
 
 ## Goals
 
-- Create a `MarkdownEditor` component with a tabbed Write/Preview interface
-- Replace `Textarea` with `MarkdownEditor` for notes and prompts only (snippets/commands keep `CodeEditor`, no changes)
-- Use `react-markdown` with `remark-gfm` for GitHub Flavored Markdown support
-- Match existing dark theme styling (`bg-[#1e1e1e]` container, `bg-[#2d2d2d]` header)
-- Add a copy button in the header (same style as `CodeEditor`)
-- Support both display (readonly) and edit modes
-- Readonly mode: only show the Preview tab
-- Edit mode: default to Write tab, with Preview available
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-**Styling requirements**
-- Headings (h1-h6) visually distinct with proper sizing/weight
-- Code blocks: dark background, monospace font
-- Inline code: subtle background highlight
-- Lists (ordered/unordered): proper indentation and bullets
-- Blockquotes: left border accent
-- Links: blue with hover state
-- Tables: borders and header background
-- Use a custom CSS class (e.g. `.markdown-preview`) for reliable dark mode styling
-- Fluid height, max 400px, matching `CodeEditor` behavior
-
-**Integration points**
-- `CreateItemDialog` (referred to as NewItemDialog in spec): note/prompt content field
-- `ItemDrawer` edit mode: note/prompt content field
-- `ItemDrawer` view mode: readonly mode for note/prompt content
-
-**Source spec:** `context/features/markdown-editor-spec.md`
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -68,3 +45,4 @@ In Progress
 - Item Create: "New Item" button in the top bar now opens a `CreateItemDialog` (src/components/dashboard/CreateItemDialog.tsx) with a type-selector button row (snippet/prompt/command/note/link, file/image excluded as out of spec) and fields shown conditionally per type (content for snippet/prompt/command/note, language for snippet/command, required URL for link) plus title/description/tags for all types; new `createItem` server action (src/actions/items.ts) — Zod-validated (`createItemSchema` in src/lib/validations/items.ts, enforces URL presence for link via `.refine`) and auth-checked — backed by a new `createItem` query function (src/lib/db/items.ts, resolves the type via the existing `getItemTypeByName` so users can't create items under a type they don't own, sets `contentType` to `URL` for links and `TEXT` otherwise); on success shows a toast, closes the modal, and calls `router.refresh()`; `itemTypes` threaded from the `(app)` layout's existing `getSystemItemTypes` fetch down through `TopBar` into the dialog; unit tests for `createItem` in src/lib/db/items.test.ts. Known issue (parked, not yet root-caused): after creating an item, opening any item drawer afterward in the same session shrinks the window/adds scroll, every time, regardless of window width — suspected to be Base UI's Dialog scroll-lock (a global singleton that adjusts `<body>`/`<html>` inline styles while a dialog is open) leaving stale styles after the create dialog closes that every later dialog/drawer inherits; needs live devtools inspection of `<body>`'s inline `style` attribute when it happens to confirm before fixing.
 - Code Editor (Monaco): new `CodeEditor` component (src/components/dashboard/CodeEditor.tsx) wrapping `@monaco-editor/react` with a fixed dark theme (`synapse-dark`, defined via `monaco.editor.defineTheme` with themed scrollbar-slider colors), macOS-style window dots, an in-header copy button + language label, fluid height capped at 400px via `editor.getContentHeight()`, and a `readOnly` prop for display vs. edit modes; wired into `ItemDrawer.tsx` (both the readonly display section and the edit-mode form) and `CreateItemDialog.tsx`'s content field, but only for snippet/command items (`LANGUAGE_TYPES`) — note/prompt keep the plain `Textarea`/`<pre>`.
 - Type-Specific Add Button: `/items/[type]` page (src/app/(app)/items/[type]/page.tsx) now also fetches `itemTypes` and renders a type-specific "Add {type}" button next to the page title (hidden for file/image, which aren't creatable yet) that opens `CreateItemDialog` preselected to that type via a new `defaultTypeName` prop, plus a new `trigger` prop so the page can supply its own button instead of the generic "New item"; `EXCLUDED_TYPES` is duplicated locally in page.tsx rather than imported from `CreateItemDialog` since importing a plain value export from a `"use client"` module into a Server Component wraps it in a client-reference proxy and breaks array methods like `.includes`. `ItemCard.tsx`'s description paragraph now always renders (with `min-h-10`) instead of being conditionally omitted, so grid cards are a uniform height whether or not an item has a description (bundled into this branch per user request, not a separate spec). Known issues (parked, not yet root-caused): (1) the type preselection was reported to still fall back to the first item type in some cases even after moving the reset into `handleOpenChange` in `CreateItemDialog.tsx`; (2) the global "New item" button's Content field was reported to always render the code editor regardless of the selected type — the gating logic (`LANGUAGE_TYPES.includes(typeName)`) reads correctly on inspection, so this needs live repro to confirm before fixing.
+- Markdown Editor: new `MarkdownEditor` component (src/components/dashboard/MarkdownEditor.tsx) with a tabbed Write/Preview interface using `react-markdown` + `remark-gfm` for GFM rendering, an in-header copy button matching `CodeEditor`'s style, fluid height capped at 400px (auto-growing textarea in Write mode), and a `readOnly` prop that forces Preview-only display; replaces `Textarea` for `note`/`prompt` content only (new `MARKDOWN_TYPES` constant, duplicated in both files per the existing `CONTENT_TYPES`/`LANGUAGE_TYPES` convention) in `CreateItemDialog.tsx` and `ItemDrawer.tsx` (both edit mode and readonly view) — snippets/commands keep `CodeEditor` unchanged; `.markdown-preview` CSS class added to globals.css for headings/code/lists/blockquotes/links/tables styling, verified to correctly override Tailwind v4 preflight resets via selector specificity. Known discrepancy (not yet resolved): the spec's stated colors (`bg-[#1e1e1e]` container / `bg-[#2d2d2d]` header) don't actually match `CodeEditor`'s real colors (`bg-[#18181b]` throughout), so `MarkdownEditor` and `CodeEditor` look very slightly different in dark mode — implemented per the literal spec, flagged for the user to decide whether to align them.
