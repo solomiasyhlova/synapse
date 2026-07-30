@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { ItemDrawer } from "@/components/dashboard/ItemDrawer";
 import { Logo } from "@/components/dashboard/Logo";
 import { MobileSidebar } from "@/components/dashboard/MobileSidebar";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { ItemDrawerProvider } from "@/components/dashboard/item-drawer-context";
 import { SidebarProvider } from "@/components/dashboard/sidebar-context";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { getFavoriteCollections, getRecentCollections } from "@/lib/db/collections";
@@ -31,27 +33,30 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center border-b border-border">
-          <Logo />
-          <TopBar />
-        </header>
-        <div className="flex min-h-0 flex-1">
-          <Sidebar
-            itemTypes={itemTypes}
-            favoriteCollections={favoriteCollections}
-            recentCollections={recentCollections}
-            user={user}
-          />
-          {children}
+      <ItemDrawerProvider>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <header className="flex h-14 shrink-0 items-center border-b border-border">
+            <Logo />
+            <TopBar />
+          </header>
+          <div className="flex min-h-0 flex-1">
+            <Sidebar
+              itemTypes={itemTypes}
+              favoriteCollections={favoriteCollections}
+              recentCollections={recentCollections}
+              user={user}
+            />
+            {children}
+          </div>
         </div>
-      </div>
-      <MobileSidebar
-        itemTypes={itemTypes}
-        favoriteCollections={favoriteCollections}
-        recentCollections={recentCollections}
-        user={user}
-      />
+        <MobileSidebar
+          itemTypes={itemTypes}
+          favoriteCollections={favoriteCollections}
+          recentCollections={recentCollections}
+          user={user}
+        />
+        <ItemDrawer />
+      </ItemDrawerProvider>
     </SidebarProvider>
   );
 }

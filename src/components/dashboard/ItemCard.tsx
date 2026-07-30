@@ -1,10 +1,11 @@
-import Link from "next/link";
+"use client";
+
 import { Pin, Star } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
+import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 import type { ItemWithType } from "@/lib/db/items";
-import { typeNameToSlug } from "@/lib/item-type-slug";
 
 function formatShortDate(date: Date) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -12,10 +13,10 @@ function formatShortDate(date: Date) {
 
 export function ItemCard({ item }: { item: ItemWithType }) {
   const type = item.itemType;
-  const href = `/items/${typeNameToSlug(type.name)}/${item.id}`;
+  const { openItem } = useItemDrawer();
 
   return (
-    <Link href={href} className="block">
+    <button type="button" className="block w-full text-left" onClick={() => openItem(item.id)}>
       <Card
         className="border-l-2 transition-colors hover:bg-muted/40"
         style={{ borderLeftColor: type.color }}
@@ -39,6 +40,6 @@ export function ItemCard({ item }: { item: ItemWithType }) {
           <p className="text-xs text-muted-foreground">{formatShortDate(item.updatedAt)}</p>
         </CardContent>
       </Card>
-    </Link>
+    </button>
   );
 }

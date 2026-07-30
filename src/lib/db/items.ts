@@ -1,3 +1,4 @@
+import type { ContentType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 
 const RECENT_ITEMS_LIMIT = 10;
@@ -56,6 +57,36 @@ export async function getItemsByType(userId: string, typeName: string): Promise<
     orderBy: { updatedAt: "desc" },
     include: { itemType: true },
   });
+}
+
+export interface ItemDetail extends ItemWithType {
+  contentType: ContentType;
+  content: string | null;
+  url: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  language: string | null;
+  createdAt: Date;
+  tags: { id: string; name: string }[];
+  collections: { id: string; name: string }[];
+}
+
+export async function getItemById(userId: string, id: string): Promise<ItemDetail | null> {
+  const item = await prisma.item.findFirst({
+    where: { id, userId },
+    include: {
+      itemType: { select: { id: true, name: true, icon: true, color: true } },
+      tags: { select: { id: true, name: true } },
+      collections: { include: { collection: { select: { id: true, name: true } } } },
+    },
+  });
+  if (!item) return null;
+
+  return {
+    ...item,
+    collections: item.collections.map(({ collection }) => collection),
+  };
 }
 
 const SYSTEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];

@@ -1,16 +1,26 @@
-# Current Feature
+# Current Feature: Item Drawer
 
 ## Status
 
-<!-- Not Started | In Progress | Complete -->
+In Progress (implemented, awaiting browser verification)
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Right-side slide-in drawer (shadcn Sheet) opens when clicking an ItemCard, replacing the need for a separate item detail page
+- Works on both the dashboard and items list pages
+- Client wrapper component manages drawer open/selected-item state (pages are server components)
+- Drawer shows full item detail: content, collections, language, etc.
+- Action bar in the drawer: Favorite (star, yellow when active), Pin, Copy, Edit (pencil), Delete (trash, right-aligned) — layout per screenshot
+- Fetch-on-click with a skeleton/loading state — no page navigation, should feel snappy
+- Code editor and other item-type-specific extras are out of scope for now — just the details display
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Card data (title, description, tags, etc.) continues to be fetched by the server component as today
+- Full item detail is fetched on click via a new API route: `/api/items/[id]`
+- Query function for full item detail lives in `lib/db/items.ts`; the API route calls it with an auth check
+- Visual reference: `context/screenshots/dashboard-ui-drawer.png`
+- Tests: `src/lib/db/items.test.ts` covers `getItemById` (not-found → null, and flattening joined `ItemCollection[]` into plain collection objects) — mocks `@/lib/prisma`, following the `vi.mock()` convention in coding-standards.md
 
 ## History
 
