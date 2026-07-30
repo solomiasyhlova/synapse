@@ -9,6 +9,7 @@ import {
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
 import type { ItemDetail } from "@/lib/db/items";
+import { deleteFileFromR2 } from "@/lib/r2";
 import { createItemSchema, updateItemSchema } from "@/lib/validations/items";
 
 interface ActionResult {
@@ -35,6 +36,9 @@ export async function createItem(data: unknown): Promise<ActionResult> {
       content: validData.content,
       url: validData.url,
       language: validData.language,
+      fileUrl: validData.fileUrl,
+      fileName: validData.fileName,
+      fileSize: validData.fileSize,
       tags: validData.tags,
     });
     if (!created) {
@@ -81,6 +85,14 @@ export async function deleteItem(itemId: string): Promise<DeleteActionResult> {
     const deleted = await deleteItemQuery(session.user.id, itemId);
     if (!deleted) {
       return { success: false, error: "Item not found" };
+    }
+
+    if (deleted.fileUrl) {
+      try {
+        await deleteFileFromR2(deleted.fileUrl);
+      } catch (error) {
+        console.error("Failed to delete file from R2:", error);
+      }
     }
 
     return { success: true };

@@ -12,11 +12,14 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+  // No data-slot here: when composed with a custom `render` element (e.g. Button, which
+  // sets its own data-slot), Base UI's render-prop merge resolves the winning value
+  // differently between SSR and hydration, causing a hydration mismatch.
+  return <DialogPrimitive.Trigger {...props} />
 }
 
 function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+  return <DialogPrimitive.Close {...props} />
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
@@ -36,6 +39,19 @@ function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
   )
 }
 
+function DialogViewport({ className, ...props }: DialogPrimitive.Viewport.Props) {
+  return (
+    <DialogPrimitive.Viewport
+      data-slot="dialog-viewport"
+      className={cn(
+        "fixed inset-0 z-50 flex flex-col items-center overflow-y-auto p-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 function DialogContent({
   className,
   children,
@@ -47,31 +63,36 @@ function DialogContent({
   return (
     <DialogPortal>
       <DialogOverlay />
-      <DialogPrimitive.Popup
-        data-slot="dialog-content"
-        className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-sm -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-border bg-popover bg-clip-padding p-4 text-sm text-popover-foreground shadow-lg transition duration-150 ease-in-out data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0",
-          className
-        )}
-        {...props}
-      >
-        {children}
-        {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            render={
-              <Button
-                variant="ghost"
-                className="absolute top-3 right-3"
-                size="icon-sm"
-              />
-            }
-          >
-            <XIcon />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Popup>
+      <DialogViewport>
+        {/* Flex-1 spacers center the popup vertically when it fits, and shrink to 0
+            (rather than compressing the popup) when content is taller than the viewport. */}
+        <div aria-hidden="true" className="flex-1" />
+        <DialogPrimitive.Popup
+          data-slot="dialog-content"
+          className={cn(
+            "relative grid w-full max-w-sm shrink-0 grid-cols-1 gap-4 rounded-xl border border-border bg-popover bg-clip-padding p-4 text-sm text-popover-foreground shadow-lg transition duration-150 ease-in-out data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0",
+            className
+          )}
+          {...props}
+        >
+          {children}
+          {showCloseButton && (
+            <DialogPrimitive.Close
+              render={
+                <Button
+                  variant="ghost"
+                  className="absolute top-3 right-3"
+                  size="icon-sm"
+                />
+              }
+            >
+              <XIcon />
+              <span className="sr-only">Close</span>
+            </DialogPrimitive.Close>
+          )}
+        </DialogPrimitive.Popup>
+        <div aria-hidden="true" className="flex-1" />
+      </DialogViewport>
     </DialogPortal>
   )
 }

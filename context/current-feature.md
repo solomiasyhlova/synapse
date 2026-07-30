@@ -1,16 +1,33 @@
-# Current Feature
+# Current Feature: File & Image Upload (Cloudflare R2)
 
 ## Status
 
-<!-- Not Started | In Progress | Complete -->
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Create upload API route for R2
+- Create `FileUpload` component with drag-and-drop
+- Update create item modal (`CreateItemDialog`) to use `FileUpload` for file/image types
+- Delete files from R2 when items are deleted
+- Create download proxy API route (avoids CORS issues)
+- Add download button in `ItemDrawer` for file types
+- Show upload progress indicator
+- Display image preview for images, file info for files
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Stick to `src/lib/db/items.ts` for Prisma/DB functions (existing convention)
+- File constraints:
+  | Type   | Max Size | Extensions |
+  | ------ | -------- | ---------- |
+  | Images | 5 MB     | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg` |
+  | Files  | 10 MB    | `.pdf`, `.txt`, `.md`, `.json`, `.yaml`, `.yml`, `.xml`, `.csv`, `.toml`, `.ini` |
+- MIME types:
+  - Images: `image/png`, `image/jpeg`, `image/gif`, `image/webp`, `image/svg+xml`
+  - Files: `application/pdf`, `text/plain`, `text/markdown`, `application/json`, `application/x-yaml`/`text/yaml`, `application/xml`/`text/xml`, `text/csv`, `application/toml`, `text/plain` (for `.ini`)
+- File/Image are Pro-only system types (per project-overview.md) — existing `CreateItemDialog` currently excludes file/image from its type selector, this feature is what wires them in
+- R2 file cleanup on delete was explicitly out of scope in the earlier Item Delete feature — this feature closes that gap
 
 ## History
 

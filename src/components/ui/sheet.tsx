@@ -12,11 +12,12 @@ function Sheet({ ...props }: SheetPrimitive.Root.Props) {
 }
 
 function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
-  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
+  // No data-slot here: see the matching note in dialog.tsx's DialogTrigger.
+  return <SheetPrimitive.Trigger {...props} />
 }
 
 function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
-  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
+  return <SheetPrimitive.Close {...props} />
 }
 
 function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
@@ -61,7 +62,6 @@ function SheetContent({
         {children}
         {showCloseButton && (
           <SheetPrimitive.Close
-            data-slot="sheet-close"
             render={
               <Button
                 variant="ghost"

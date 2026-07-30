@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Pencil, Pin, Star, Trash2 } from "lucide-react";
+import { Copy, Download, File as FileIcon, Pencil, Pin, Star, Trash2 } from "lucide-react";
 
 import { deleteItem, updateItem } from "@/actions/items";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 import type { ItemDetail } from "@/lib/db/items";
 import { toastManager } from "@/lib/toast";
+import { formatBytes } from "@/lib/upload-constraints";
 import { cn } from "@/lib/utils";
 
 const CONTENT_TYPES = ["snippet", "prompt", "command", "note"];
@@ -178,7 +179,7 @@ export function ItemDrawer() {
                     style={{ color: item.itemType.color }}
                   />
                 </span>
-                <SheetTitle className="text-lg">{item.title}</SheetTitle>
+                <SheetTitle className="min-w-0 flex-1 truncate text-lg">{item.title}</SheetTitle>
               </>
             ) : (
               <>
@@ -418,14 +419,37 @@ export function ItemDrawer() {
 
             {item.fileUrl && (
               <section className="space-y-1.5">
-                <h3 className="text-xs font-medium text-muted-foreground">File</h3>
+                <h3 className="text-xs font-medium text-muted-foreground">
+                  {item.itemType.name === "image" ? "Image" : "File"}
+                </h3>
+                {item.itemType.name === "image" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.fileUrl}
+                    alt={item.fileName ?? item.title}
+                    className="max-h-64 w-full rounded-lg border border-border object-contain"
+                  />
+                ) : (
+                  <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted">
+                      <FileIcon className="size-4 text-muted-foreground" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{item.fileName ?? "File"}</p>
+                      {item.fileSize != null && (
+                        <p className="text-xs text-muted-foreground">
+                          {formatBytes(item.fileSize)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <a
-                  href={item.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block truncate text-sm text-primary underline-offset-4 hover:underline"
+                  href={`/api/items/${item.id}/download`}
+                  className="inline-flex items-center gap-1.5 text-sm text-primary underline-offset-4 hover:underline"
                 >
-                  {item.fileName ?? item.fileUrl}
+                  <Download className="size-3.5" />
+                  Download
                 </a>
               </section>
             )}

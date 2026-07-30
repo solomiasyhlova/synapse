@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeEditor } from "@/components/dashboard/CodeEditor";
+import { FileUpload, type UploadedFile } from "@/components/dashboard/FileUpload";
 import { MarkdownEditor } from "@/components/dashboard/MarkdownEditor";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import type { ItemTypeWithCount } from "@/lib/db/items";
@@ -27,7 +28,7 @@ import { cn } from "@/lib/utils";
 const CONTENT_TYPES = ["snippet", "prompt", "command", "note"];
 const LANGUAGE_TYPES = ["snippet", "command"];
 const MARKDOWN_TYPES = ["note", "prompt"];
-const EXCLUDED_TYPES = ["file", "image"];
+const FILE_TYPES = ["file", "image"];
 
 const EMPTY_FORM = {
   title: "",
@@ -36,6 +37,7 @@ const EMPTY_FORM = {
   language: "",
   url: "",
   tags: "",
+  file: null as UploadedFile | null,
 };
 
 interface CreateItemDialogProps {
@@ -46,17 +48,16 @@ interface CreateItemDialogProps {
 
 export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: CreateItemDialogProps) {
   const router = useRouter();
-  const types = itemTypes.filter((type) => !EXCLUDED_TYPES.includes(type.name));
 
   const [open, setOpen] = useState(false);
-  const [typeName, setTypeName] = useState(defaultTypeName ?? types[0]?.name ?? "");
+  const [typeName, setTypeName] = useState(defaultTypeName ?? itemTypes[0]?.name ?? "");
   const [form, setForm] = useState(EMPTY_FORM);
   const [isCreating, setIsCreating] = useState(false);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (nextOpen) {
-      setTypeName(defaultTypeName ?? types[0]?.name ?? "");
+      setTypeName(defaultTypeName ?? itemTypes[0]?.name ?? "");
     } else {
       setForm(EMPTY_FORM);
     }
@@ -69,6 +70,7 @@ export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: Create
     const isContentType = CONTENT_TYPES.includes(typeName);
     const isLanguageType = LANGUAGE_TYPES.includes(typeName);
     const isUrlType = typeName === "link";
+    const isFileType = FILE_TYPES.includes(typeName);
 
     const result = await createItem({
       typeName,
@@ -77,6 +79,9 @@ export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: Create
       content: isContentType ? form.content : null,
       language: isLanguageType ? form.language.trim() || null : null,
       url: isUrlType ? form.url.trim() || null : null,
+      fileUrl: isFileType ? (form.file?.fileUrl ?? null) : null,
+      fileName: isFileType ? (form.file?.fileName ?? null) : null,
+      fileSize: isFileType ? (form.file?.fileSize ?? null) : null,
       tags: form.tags
         .split(",")
         .map((tag) => tag.trim())
@@ -95,7 +100,11 @@ export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: Create
   }
 
   const isUrlType = typeName === "link";
-  const canSubmit = form.title.trim().length > 0 && (!isUrlType || form.url.trim().length > 0);
+  const isFileType = FILE_TYPES.includes(typeName);
+  const canSubmit =
+    form.title.trim().length > 0 &&
+    (!isUrlType || form.url.trim().length > 0) &&
+    (!isFileType || form.file !== null);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -109,19 +118,24 @@ export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: Create
           )
         }
       />
-      <DialogContent className="max-h-[85vh] max-w-lg gap-3 overflow-y-auto">
+      <DialogContent className="max-w-lg gap-3">
         <DialogHeader>
           <DialogTitle>New item</DialogTitle>
         </DialogHeader>
         <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
           <div className="flex flex-wrap gap-1.5">
-            {types.map((type) => {
+            {itemTypes.map((type) => {
               const isSelected = type.name === typeName;
               return (
                 <button
                   key={type.id}
                   type="button"
-                  onClick={() => setTypeName(type.name)}
+                  onClick={() => {
+                    if (type.name !== typeName) {
+                      setForm((prev) => ({ ...prev, file: null }));
+                    }
+                    setTypeName(type.name);
+                  }}
                   className={cn(
                     "flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm capitalize transition-colors",
                     isSelected
@@ -218,6 +232,17 @@ export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: Create
                 onChange={(e) => setForm({ ...form, url: e.target.value })}
                 placeholder="https://example.com"
                 required
+              />
+            </div>
+          )}
+
+          {isFileType && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">{typeName === "image" ? "Image" : "File"}</label>
+              <FileUpload
+                kind={typeName as "file" | "image"}
+                value={form.file}
+                onChange={(file) => setForm({ ...form, file })}
               />
             </div>
           )}

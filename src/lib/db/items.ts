@@ -89,12 +89,23 @@ export async function getItemById(userId: string, id: string): Promise<ItemDetai
   };
 }
 
+const FILE_TYPE_NAMES = ["file", "image"];
+
+function resolveContentType(typeName: string): ContentType {
+  if (typeName === "link") return "URL";
+  if (FILE_TYPE_NAMES.includes(typeName)) return "FILE";
+  return "TEXT";
+}
+
 export interface CreateItemData {
   title: string;
   description?: string | null;
   content?: string | null;
   url?: string | null;
   language?: string | null;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
   tags: string[];
 }
 
@@ -113,7 +124,10 @@ export async function createItem(
       content: data.content ?? null,
       url: data.url ?? null,
       language: data.language ?? null,
-      contentType: typeName === "link" ? "URL" : "TEXT",
+      fileUrl: data.fileUrl ?? null,
+      fileName: data.fileName ?? null,
+      fileSize: data.fileSize ?? null,
+      contentType: resolveContentType(typeName),
       userId,
       itemTypeId: itemType.id,
       tags: {
@@ -182,12 +196,20 @@ export async function updateItem(
   };
 }
 
-export async function deleteItem(userId: string, id: string): Promise<boolean> {
-  const existing = await prisma.item.findFirst({ where: { id, userId }, select: { id: true } });
-  if (!existing) return false;
+export interface DeletedItem {
+  id: string;
+  fileUrl: string | null;
+}
+
+export async function deleteItem(userId: string, id: string): Promise<DeletedItem | null> {
+  const existing = await prisma.item.findFirst({
+    where: { id, userId },
+    select: { id: true, fileUrl: true },
+  });
+  if (!existing) return null;
 
   await prisma.item.delete({ where: { id } });
-  return true;
+  return existing;
 }
 
 const SYSTEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];

@@ -160,6 +160,53 @@ describe("createItem", () => {
       }),
     );
   });
+
+  it("stores the FILE content type and file metadata for image items", async () => {
+    itemTypeFindFirst.mockResolvedValueOnce({
+      id: "type-3",
+      name: "image",
+      icon: "Image",
+      color: "#ec4899",
+    });
+    create.mockResolvedValueOnce({
+      id: "item-3",
+      title: "Diagram",
+      description: null,
+      isFavorite: false,
+      isPinned: false,
+      updatedAt: new Date("2024-01-16"),
+      createdAt: new Date("2024-01-16"),
+      contentType: "FILE",
+      content: null,
+      url: null,
+      fileUrl: "https://files.example.com/diagram.png",
+      fileName: "diagram.png",
+      fileSize: 1024,
+      language: null,
+      itemType: { id: "type-3", name: "image", icon: "Image", color: "#ec4899" },
+      tags: [],
+      collections: [],
+    });
+
+    await createItem("user-1", "image", {
+      title: "Diagram",
+      fileUrl: "https://files.example.com/diagram.png",
+      fileName: "diagram.png",
+      fileSize: 1024,
+      tags: [],
+    });
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          contentType: "FILE",
+          fileUrl: "https://files.example.com/diagram.png",
+          fileName: "diagram.png",
+          fileSize: 1024,
+        }),
+      }),
+    );
+  });
 });
 
 describe("updateItem", () => {
@@ -230,25 +277,25 @@ describe("updateItem", () => {
 });
 
 describe("deleteItem", () => {
-  it("returns false when the item isn't found or isn't owned by the user", async () => {
+  it("returns null when the item isn't found or isn't owned by the user", async () => {
     findFirst.mockResolvedValueOnce(null);
 
     const result = await deleteItem("user-1", "item-1");
 
-    expect(result).toBe(false);
+    expect(result).toBeNull();
     expect(findFirst).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: "item-1", userId: "user-1" } }),
     );
     expect(deleteFn).not.toHaveBeenCalled();
   });
 
-  it("deletes the item and returns true when owned by the user", async () => {
-    findFirst.mockResolvedValueOnce({ id: "item-1" });
+  it("deletes the item and returns its id and fileUrl when owned by the user", async () => {
+    findFirst.mockResolvedValueOnce({ id: "item-1", fileUrl: "https://files.example.com/item-1.png" });
     deleteFn.mockResolvedValueOnce({ id: "item-1" });
 
     const result = await deleteItem("user-1", "item-1");
 
-    expect(result).toBe(true);
+    expect(result).toEqual({ id: "item-1", fileUrl: "https://files.example.com/item-1.png" });
     expect(deleteFn).toHaveBeenCalledWith({ where: { id: "item-1" } });
   });
 });
