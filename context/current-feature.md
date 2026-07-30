@@ -1,31 +1,16 @@
-# Current Feature: Item Drawer — Edit Mode
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started | In Progress | Complete -->
 
 ## Goals
 
-- Edit button in the drawer's action bar toggles inline edit mode (same drawer, no navigation)
-- Action bar replaced with Save/Cancel while editing
-- Cancel discards changes and returns to view mode
-- Save persists via server action, returns to view mode, refreshes drawer data, and shows a success/error toast
-- Editable for all types: Title (required), Description (optional textarea), Tags (comma-separated → array on save)
-- Editable per type: Content (textarea) for snippet/prompt/command/note; Language (text) for snippet/command; URL (text) for link
-- Item type, Collections, and Created/Updated dates are display-only in edit mode
-- `updateItem(itemId, data)` server action in `src/actions/items.ts` — Zod validation, `auth()` session check, ownership check, `{ success, data, error }` pattern
-- `updateItem` query function in `src/lib/db/items.ts` — tags: disconnect all + connect-or-create new; returns updated `ItemDetail`
-- After save: `router.refresh()` so underlying card list reflects changes
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Zod schema: title (non-empty trimmed string), description (string|null, optional), content (string|null, optional), url (valid URL string|null, optional), language (string|null, optional), tags (array of trimmed non-empty strings)
-- Zod errors returned in `{ success: false, error }` for client display
-- No form library — controlled inputs with local state
-- Client-side: disable Save when title is empty
-- Server-side Zod validation is the source of truth
-- Content textarea is plain (no code editor yet — later work)
-- Spec source: context/features/item-drawer-edit-spec.md
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -55,3 +40,4 @@ In Progress
 - Vitest Setup: vitest.config.ts (node environment, @/* alias, src/**/*.test.ts only so component tests aren't picked up), test/test:watch scripts in package.json, example unit test for src/lib/item-type-slug.ts as a pattern for future server-action/utility tests
 - Three-Column Items Grid: added `lg:grid-cols-3` breakpoint to the items grid (src/app/(app)/items/[type]/page.tsx), keeping the existing 1/2-column responsive breakpoints below it; no ItemCard changes needed since it's already width-fluid
 - Item Drawer: right-side shadcn Sheet opens on item click showing full detail (content, language, tags, collections, created/updated) fetched via new auth-checked `/api/items/[id]` route calling `getItemById` (src/lib/db/items.ts); `ItemDrawerProvider` context (src/components/dashboard/item-drawer-context.tsx) shared app-wide via the `(app)` layout so both the dashboard and `/items/[type]` pages open the same drawer instance; `ItemCard`/`ItemRow` converted from `<Link>` (to a `/items/[type]/[id]` route that never had a page) to buttons that open the drawer instead; action bar (Favorite/Pin/Copy/Edit/Delete) renders per the screenshot but only Copy is wired (clipboard) — Favorite/Pin/Edit/Delete have no mutations yet; unit tests for `getItemById` in src/lib/db/items.test.ts
+- Item Drawer Edit Mode: Edit button toggles the drawer into inline edit mode (Save/Cancel replace the action bar) via new `updateItem(itemId, data)` server action (src/actions/items.ts) — Zod-validated (`updateItemSchema` in src/lib/validations/items.ts), `auth()`-checked, ownership-checked — backed by a new `updateItem` query function (src/lib/db/items.ts, tags: disconnect-all + connect-or-create, returns updated `ItemDetail`); editable fields are Title/Description/Tags for all types plus Content/Language/URL shown conditionally per item type; new `Textarea` UI primitive (src/components/ui/textarea.tsx, didn't exist before); Save shows a toast and calls `router.refresh()`; unit tests for `updateItem` in src/lib/db/items.test.ts (no test added for the action itself, matching the existing untested-action convention from auth.ts/profile.ts)
