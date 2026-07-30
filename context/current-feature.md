@@ -1,33 +1,16 @@
-# Current Feature: File & Image Upload (Cloudflare R2)
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started | In Progress | Complete -->
 
 ## Goals
 
-- Create upload API route for R2
-- Create `FileUpload` component with drag-and-drop
-- Update create item modal (`CreateItemDialog`) to use `FileUpload` for file/image types
-- Delete files from R2 when items are deleted
-- Create download proxy API route (avoids CORS issues)
-- Add download button in `ItemDrawer` for file types
-- Show upload progress indicator
-- Display image preview for images, file info for files
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Stick to `src/lib/db/items.ts` for Prisma/DB functions (existing convention)
-- File constraints:
-  | Type   | Max Size | Extensions |
-  | ------ | -------- | ---------- |
-  | Images | 5 MB     | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg` |
-  | Files  | 10 MB    | `.pdf`, `.txt`, `.md`, `.json`, `.yaml`, `.yml`, `.xml`, `.csv`, `.toml`, `.ini` |
-- MIME types:
-  - Images: `image/png`, `image/jpeg`, `image/gif`, `image/webp`, `image/svg+xml`
-  - Files: `application/pdf`, `text/plain`, `text/markdown`, `application/json`, `application/x-yaml`/`text/yaml`, `application/xml`/`text/xml`, `text/csv`, `application/toml`, `text/plain` (for `.ini`)
-- File/Image are Pro-only system types (per project-overview.md) — existing `CreateItemDialog` currently excludes file/image from its type selector, this feature is what wires them in
-- R2 file cleanup on delete was explicitly out of scope in the earlier Item Delete feature — this feature closes that gap
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -63,3 +46,4 @@ In Progress
 - Code Editor (Monaco): new `CodeEditor` component (src/components/dashboard/CodeEditor.tsx) wrapping `@monaco-editor/react` with a fixed dark theme (`synapse-dark`, defined via `monaco.editor.defineTheme` with themed scrollbar-slider colors), macOS-style window dots, an in-header copy button + language label, fluid height capped at 400px via `editor.getContentHeight()`, and a `readOnly` prop for display vs. edit modes; wired into `ItemDrawer.tsx` (both the readonly display section and the edit-mode form) and `CreateItemDialog.tsx`'s content field, but only for snippet/command items (`LANGUAGE_TYPES`) — note/prompt keep the plain `Textarea`/`<pre>`.
 - Type-Specific Add Button: `/items/[type]` page (src/app/(app)/items/[type]/page.tsx) now also fetches `itemTypes` and renders a type-specific "Add {type}" button next to the page title (hidden for file/image, which aren't creatable yet) that opens `CreateItemDialog` preselected to that type via a new `defaultTypeName` prop, plus a new `trigger` prop so the page can supply its own button instead of the generic "New item"; `EXCLUDED_TYPES` is duplicated locally in page.tsx rather than imported from `CreateItemDialog` since importing a plain value export from a `"use client"` module into a Server Component wraps it in a client-reference proxy and breaks array methods like `.includes`. `ItemCard.tsx`'s description paragraph now always renders (with `min-h-10`) instead of being conditionally omitted, so grid cards are a uniform height whether or not an item has a description (bundled into this branch per user request, not a separate spec). Known issues (parked, not yet root-caused): (1) the type preselection was reported to still fall back to the first item type in some cases even after moving the reset into `handleOpenChange` in `CreateItemDialog.tsx`; (2) the global "New item" button's Content field was reported to always render the code editor regardless of the selected type — the gating logic (`LANGUAGE_TYPES.includes(typeName)`) reads correctly on inspection, so this needs live repro to confirm before fixing.
 - Markdown Editor: new `MarkdownEditor` component (src/components/dashboard/MarkdownEditor.tsx) with a tabbed Write/Preview interface using `react-markdown` + `remark-gfm` for GFM rendering, an in-header copy button matching `CodeEditor`'s style, fluid height capped at 400px (auto-growing textarea in Write mode), and a `readOnly` prop that forces Preview-only display; replaces `Textarea` for `note`/`prompt` content only (new `MARKDOWN_TYPES` constant, duplicated in both files per the existing `CONTENT_TYPES`/`LANGUAGE_TYPES` convention) in `CreateItemDialog.tsx` and `ItemDrawer.tsx` (both edit mode and readonly view) — snippets/commands keep `CodeEditor` unchanged; `.markdown-preview` CSS class added to globals.css for headings/code/lists/blockquotes/links/tables styling, verified to correctly override Tailwind v4 preflight resets via selector specificity. Known discrepancy (not yet resolved): the spec's stated colors (`bg-[#1e1e1e]` container / `bg-[#2d2d2d]` header) don't actually match `CodeEditor`'s real colors (`bg-[#18181b]` throughout), so `MarkdownEditor` and `CodeEditor` look very slightly different in dark mode — implemented per the literal spec, flagged for the user to decide whether to align them.
+- File & Image Upload (Cloudflare R2): file/image system types wired into `CreateItemDialog.tsx` (previously excluded) via a new `FileUpload` component (src/components/dashboard/FileUpload.tsx — drag-and-drop, upload progress bar, image thumbnail/file-info preview) backed by a new auth-checked `/api/upload` route and `src/lib/r2.ts` (S3-compatible client for Cloudflare R2, `@aws-sdk/client-s3`); shared size/extension/MIME constraints in `src/lib/upload-constraints.ts` drive both client validation and server enforcement; new auth+ownership-checked `/api/items/[id]/download` route proxies the file through the server (avoids CORS, sets `Content-Disposition`) with a Download link + image preview/file-info card added to `ItemDrawer.tsx`; `deleteItem` (src/lib/db/items.ts) now returns the deleted item's `fileUrl` so the `deleteItem` action (src/actions/items.ts) can clean up the R2 object after a successful DB delete, closing the gap left by the earlier Item Delete feature; `createItemSchema` (src/lib/validations/items.ts) validates that `fileUrl` is actually hosted under `R2_PUBLIC_URL` (via `isR2Url`) since Server Actions are callable independent of the UI and an unvalidated URL would let `/api/items/[id]/download`'s server-side `fetch` be used as an SSRF proxy; unit tests added for `upload-constraints.ts` and `createItemSchema` (including a regression test for the SSRF guard) in addition to the existing `items.test.ts` coverage. Bundled fixes discovered while testing, all shared/root-caused rather than one-off patches: (1) `DialogContent` (src/components/ui/dialog.tsx) is `display:grid` without `minmax(0,...)` column sizing, so an unbreakable long string (e.g. a filename) forced the grid track wider than the dialog, overflowing horizontally — fixed with `grid-cols-1`, which also fixed the same class of bug in `ItemDrawer.tsx`'s title header (added `min-w-0 flex-1 truncate`) since any item type can have a long unbroken title, not just files; (2) the "New item" dialog scrolled inside a cramped `max-h-[85vh]` box — `Dialog`/`Sheet` (dialog.tsx, sheet.tsx) now use Base UI's `Dialog.Viewport` as the scrollable positioning container with two `flex-1` spacers around the popup (centers short dialogs vertically, shrinks to 0 instead of compressing the popup when content is taller than the screen, so the whole overlay scrolls instead of an inner box); (3) a hydration mismatch on every dialog's trigger/close buttons — `DialogTrigger`/`DialogClose`/`SheetTrigger`/`SheetClose` no longer set an explicit `data-slot` (including the built-in close "X" inside `DialogContent`/`SheetContent`), since when composed with `render={<Button/>}` (which sets its own `data-slot`), Base UI's render-prop merge resolved the winning value differently between SSR and hydration.
