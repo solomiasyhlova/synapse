@@ -1,26 +1,16 @@
-# Current Feature: Item Create
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started | In Progress | Complete -->
 
 ## Goals
 
-- "New Item" button in top bar opens a shadcn Dialog modal to create a new item
-- Type selector for snippet, prompt, command, note, link
-- All types capture title (required), description, tags
-- snippet/command additionally capture content and language
-- prompt/note additionally capture content
-- link additionally captures URL (required)
-- Server action `createItem` validates input with Zod
-- Query function `createItem` added to `lib/db/items.ts`
-- On success: show toast, close modal, refresh item list
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Fields shown in the modal are conditional based on the selected type
-- Follows existing patterns from item update/delete (Zod validation, auth() + ownership checks, server action + db query split, toast + router.refresh() on success)
-- Known issue (parked, not yet root-caused): after creating an item via the new dialog, opening any item drawer afterward in the same session shrinks the window/adds scroll, every time, regardless of window width. Suspected cause: Base UI's Dialog scroll-lock is a global singleton that adjusts `<body>`/`<html>` inline styles while a dialog is open and restores them on close; the create dialog closing may leave stale styles that every later dialog/drawer inherits. Needs live devtools inspection of `<body>`'s inline `style` attribute when it happens to confirm before fixing.
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -52,3 +42,4 @@ In Progress
 - Item Drawer: right-side shadcn Sheet opens on item click showing full detail (content, language, tags, collections, created/updated) fetched via new auth-checked `/api/items/[id]` route calling `getItemById` (src/lib/db/items.ts); `ItemDrawerProvider` context (src/components/dashboard/item-drawer-context.tsx) shared app-wide via the `(app)` layout so both the dashboard and `/items/[type]` pages open the same drawer instance; `ItemCard`/`ItemRow` converted from `<Link>` (to a `/items/[type]/[id]` route that never had a page) to buttons that open the drawer instead; action bar (Favorite/Pin/Copy/Edit/Delete) renders per the screenshot but only Copy is wired (clipboard) — Favorite/Pin/Edit/Delete have no mutations yet; unit tests for `getItemById` in src/lib/db/items.test.ts
 - Item Drawer Edit Mode: Edit button toggles the drawer into inline edit mode (Save/Cancel replace the action bar) via new `updateItem(itemId, data)` server action (src/actions/items.ts) — Zod-validated (`updateItemSchema` in src/lib/validations/items.ts), `auth()`-checked, ownership-checked — backed by a new `updateItem` query function (src/lib/db/items.ts, tags: disconnect-all + connect-or-create, returns updated `ItemDetail`); editable fields are Title/Description/Tags for all types plus Content/Language/URL shown conditionally per item type; new `Textarea` UI primitive (src/components/ui/textarea.tsx, didn't exist before); Save shows a toast and calls `router.refresh()`; unit tests for `updateItem` in src/lib/db/items.test.ts (no test added for the action itself, matching the existing untested-action convention from auth.ts/profile.ts)
 - Item Delete: Delete button in the item drawer's action bar now opens a confirmation `Dialog` (reusing the Base UI-backed primitive from `DeleteAccountDialog.tsx`, no separate AlertDialog added) before deleting via new `deleteItem(itemId)` server action (src/actions/items.ts) — `auth()`-checked, ownership-checked — backed by a new `deleteItem` query function (src/lib/db/items.ts, Prisma `item.delete` scoped by `userId`); on success the dialog and drawer close, a toast confirms, and `router.refresh()` updates the list; R2 file/image cleanup on delete deliberately out of scope; unit tests for `deleteItem` in src/lib/db/items.test.ts
+- Item Create: "New Item" button in the top bar now opens a `CreateItemDialog` (src/components/dashboard/CreateItemDialog.tsx) with a type-selector button row (snippet/prompt/command/note/link, file/image excluded as out of spec) and fields shown conditionally per type (content for snippet/prompt/command/note, language for snippet/command, required URL for link) plus title/description/tags for all types; new `createItem` server action (src/actions/items.ts) — Zod-validated (`createItemSchema` in src/lib/validations/items.ts, enforces URL presence for link via `.refine`) and auth-checked — backed by a new `createItem` query function (src/lib/db/items.ts, resolves the type via the existing `getItemTypeByName` so users can't create items under a type they don't own, sets `contentType` to `URL` for links and `TEXT` otherwise); on success shows a toast, closes the modal, and calls `router.refresh()`; `itemTypes` threaded from the `(app)` layout's existing `getSystemItemTypes` fetch down through `TopBar` into the dialog; unit tests for `createItem` in src/lib/db/items.test.ts. Known issue (parked, not yet root-caused): after creating an item, opening any item drawer afterward in the same session shrinks the window/adds scroll, every time, regardless of window width — suspected to be Base UI's Dialog scroll-lock (a global singleton that adjusts `<body>`/`<html>` inline styles while a dialog is open) leaving stale styles after the create dialog closes that every later dialog/drawer inherits; needs live devtools inspection of `<body>`'s inline `style` attribute when it happens to confirm before fixing.
