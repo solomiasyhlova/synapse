@@ -1,19 +1,16 @@
-# Current Feature: Three-Column Items Grid
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started | In Progress | Complete -->
 
 ## Goals
 
-- Items list view (`/items/[type]`) shows 3 columns on larger screens instead of 2
-- Grid stays responsive: fewer columns on smaller viewports, no horizontal overflow or cramped cards
-- No change to `ItemCard` content/behavior, only the grid layout
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Grid lives in `src/app/(app)/items/[type]/page.tsx:44`, currently `grid grid-cols-1 gap-4 md:grid-cols-2`
-- Likely a Tailwind breakpoint tweak (e.g. add `lg:grid-cols-3`), verify against real content widths in the browser rather than assuming
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -40,3 +37,5 @@ In Progress
 - Profile Page: expanded /profile with real per-user data (src/lib/db/profile.ts using session.user.id instead of the demo-user pattern) — member-since date, usage stats and item-type breakdown (ProfileStats.tsx), ChangePasswordDialog (email/password accounts only, gated on passwordHash) and DeleteAccountDialog (type-to-confirm, cascading delete) via src/actions/profile.ts, changePasswordSchema added to src/lib/validations/auth.ts
 - Rate Limiting for Auth: Upstash Redis + @upstash/ratelimit sliding-window utility (src/lib/rate-limit.ts, fails open if Upstash unconfigured/unavailable), applied to register (API route, 429 + Retry-After header) and to login/forgot-password/reset-password/resend-verification (Server Actions in src/actions/auth.ts, surfaced via existing success/error result pattern since Server Actions can't set HTTP status codes), fixed a pre-existing bug where SignInForm/ResendVerificationButton always showed "email sent" regardless of the action result
 - Items List View: dynamic route /items/[type] (src/app/(app)/items/[type]/page.tsx) fetching items filtered by type via new getItemTypeByName/getItemsByType (src/lib/db/items.ts), responsive 2-col ItemCard grid (src/components/dashboard/ItemCard.tsx) reusing ItemRow's border-color+TypeIcon pattern, plural-to-singular slug mapping (src/lib/item-type-slug.ts), moved dashboard layout/page into a new (app) route group so /items/[type] shares the sidebar/topbar (no URL changes), fixed pre-existing Sidebar.tsx/ItemRow.tsx links that pointed at singular type names, added /items/* to proxy.ts's protected matcher
+- Vitest Setup: vitest.config.ts (node environment, @/* alias, src/**/*.test.ts only so component tests aren't picked up), test/test:watch scripts in package.json, example unit test for src/lib/item-type-slug.ts as a pattern for future server-action/utility tests
+- Three-Column Items Grid: added `lg:grid-cols-3` breakpoint to the items grid (src/app/(app)/items/[type]/page.tsx), keeping the existing 1/2-column responsive breakpoints below it; no ItemCard changes needed since it's already width-fluid
