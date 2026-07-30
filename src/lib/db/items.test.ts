@@ -2,14 +2,15 @@ import { describe, expect, it, vi } from "vitest";
 
 const findFirst = vi.fn();
 const update = vi.fn();
+const deleteFn = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    item: { findFirst, update },
+    item: { findFirst, update, delete: deleteFn },
   },
 }));
 
-const { getItemById, updateItem } = await import("./items");
+const { deleteItem, getItemById, updateItem } = await import("./items");
 
 describe("getItemById", () => {
   it("returns null when the item isn't found or isn't owned by the user", async () => {
@@ -121,5 +122,29 @@ describe("updateItem", () => {
       }),
     );
     expect(result?.collections).toEqual([{ id: "col-1", name: "React Patterns" }]);
+  });
+});
+
+describe("deleteItem", () => {
+  it("returns false when the item isn't found or isn't owned by the user", async () => {
+    findFirst.mockResolvedValueOnce(null);
+
+    const result = await deleteItem("user-1", "item-1");
+
+    expect(result).toBe(false);
+    expect(findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "item-1", userId: "user-1" } }),
+    );
+    expect(deleteFn).not.toHaveBeenCalled();
+  });
+
+  it("deletes the item and returns true when owned by the user", async () => {
+    findFirst.mockResolvedValueOnce({ id: "item-1" });
+    deleteFn.mockResolvedValueOnce({ id: "item-1" });
+
+    const result = await deleteItem("user-1", "item-1");
+
+    expect(result).toBe(true);
+    expect(deleteFn).toHaveBeenCalledWith({ where: { id: "item-1" } });
   });
 });

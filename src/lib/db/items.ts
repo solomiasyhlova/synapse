@@ -135,6 +135,14 @@ export async function updateItem(
   };
 }
 
+export async function deleteItem(userId: string, id: string): Promise<boolean> {
+  const existing = await prisma.item.findFirst({ where: { id, userId }, select: { id: true } });
+  if (!existing) return false;
+
+  await prisma.item.delete({ where: { id } });
+  return true;
+}
+
 const SYSTEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];
 
 export async function getSystemItemTypes(userId: string): Promise<ItemTypeWithCount[]> {

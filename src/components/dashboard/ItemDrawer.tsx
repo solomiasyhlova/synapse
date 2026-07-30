@@ -4,9 +4,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Pencil, Pin, Star, Trash2 } from "lucide-react";
 
-import { updateItem } from "@/actions/items";
+import { deleteItem, updateItem } from "@/actions/items";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,6 +64,8 @@ export function ItemDrawer() {
   const [isEditing, setIsEditing] = useState(false);
   const [edit, setEdit] = useState<EditState | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!openItemId) return;
@@ -63,6 +74,7 @@ export function ItemDrawer() {
     setItem(null);
     setIsEditing(false);
     setEdit(null);
+    setIsDeleteDialogOpen(false);
 
     fetch(`/api/items/${openItemId}`)
       .then((res) => res.json())
@@ -126,6 +138,23 @@ export function ItemDrawer() {
       router.refresh();
     } else {
       toastManager.add({ title: "Failed to update item", description: result.error });
+    }
+  }
+
+  async function handleDelete() {
+    if (!item) return;
+
+    setIsDeleting(true);
+    const result = await deleteItem(item.id);
+    setIsDeleting(false);
+
+    if (result.success) {
+      setIsDeleteDialogOpen(false);
+      close();
+      toastManager.add({ title: "Item deleted" });
+      router.refresh();
+    } else {
+      toastManager.add({ title: "Failed to delete item", description: result.error });
     }
   }
 
@@ -207,6 +236,8 @@ export function ItemDrawer() {
                   variant="ghost"
                   size="sm"
                   className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                  disabled={!item}
                 >
                   <Trash2 className="size-4" />
                   Delete
@@ -423,6 +454,23 @@ export function ItemDrawer() {
           </div>
         )}
       </SheetContent>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete item</DialogTitle>
+            <DialogDescription>
+              This permanently deletes &ldquo;{item?.title}&rdquo;. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button type="button" variant="ghost" />}>Cancel</DialogClose>
+            <Button variant="destructive" disabled={isDeleting} onClick={() => void handleDelete()}>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 }
