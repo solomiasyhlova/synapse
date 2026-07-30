@@ -1,13 +1,19 @@
 "use client";
 
-import { Bell, Menu, Plus, Search } from "lucide-react";
+import { Bell, Menu, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CreateItemDialog } from "@/components/dashboard/CreateItemDialog";
 import { NewCollectionDialog } from "@/components/dashboard/NewCollectionDialog";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
+import type { ItemTypeWithCount } from "@/lib/db/items";
 
-export function TopBar() {
+interface TopBarProps {
+  itemTypes: ItemTypeWithCount[];
+}
+
+export function TopBar({ itemTypes }: TopBarProps) {
   const { setMobileOpen } = useSidebar();
 
   return (
@@ -34,10 +40,7 @@ export function TopBar() {
           <Bell />
         </Button>
         <NewCollectionDialog />
-        <Button>
-          <Plus />
-          New item
-        </Button>
+        <CreateItemDialog itemTypes={itemTypes} />
       </div>
     </div>
   );

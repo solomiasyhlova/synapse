@@ -1,16 +1,26 @@
-# Current Feature
+# Current Feature: Item Create
 
 ## Status
 
-<!-- Not Started | In Progress | Complete -->
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- "New Item" button in top bar opens a shadcn Dialog modal to create a new item
+- Type selector for snippet, prompt, command, note, link
+- All types capture title (required), description, tags
+- snippet/command additionally capture content and language
+- prompt/note additionally capture content
+- link additionally captures URL (required)
+- Server action `createItem` validates input with Zod
+- Query function `createItem` added to `lib/db/items.ts`
+- On success: show toast, close modal, refresh item list
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Fields shown in the modal are conditional based on the selected type
+- Follows existing patterns from item update/delete (Zod validation, auth() + ownership checks, server action + db query split, toast + router.refresh() on success)
+- Known issue (parked, not yet root-caused): after creating an item via the new dialog, opening any item drawer afterward in the same session shrinks the window/adds scroll, every time, regardless of window width. Suspected cause: Base UI's Dialog scroll-lock is a global singleton that adjusts `<body>`/`<html>` inline styles while a dialog is open and restores them on close; the create dialog closing may leave stale styles that every later dialog/drawer inherits. Needs live devtools inspection of `<body>`'s inline `style` attribute when it happens to confirm before fixing.
 
 ## History
 

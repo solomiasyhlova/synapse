@@ -3,9 +3,13 @@
 import { ZodError } from "zod";
 
 import { auth } from "@/auth";
-import { deleteItem as deleteItemQuery, updateItem as updateItemQuery } from "@/lib/db/items";
+import {
+  createItem as createItemQuery,
+  deleteItem as deleteItemQuery,
+  updateItem as updateItemQuery,
+} from "@/lib/db/items";
 import type { ItemDetail } from "@/lib/db/items";
-import { updateItemSchema } from "@/lib/validations/items";
+import { createItemSchema, updateItemSchema } from "@/lib/validations/items";
 
 interface ActionResult {
   success: boolean;
@@ -16,6 +20,35 @@ interface ActionResult {
 interface DeleteActionResult {
   success: boolean;
   error?: string;
+}
+
+export async function createItem(data: unknown): Promise<ActionResult> {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Not signed in" };
+
+    const validData = await createItemSchema.parseAsync(data);
+
+    const created = await createItemQuery(session.user.id, validData.typeName, {
+      title: validData.title,
+      description: validData.description,
+      content: validData.content,
+      url: validData.url,
+      language: validData.language,
+      tags: validData.tags,
+    });
+    if (!created) {
+      return { success: false, error: "Item type not found" };
+    }
+
+    return { success: true, data: created };
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
+    }
+    console.error("Failed to create item:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
 }
 
 export async function updateItem(itemId: string, data: unknown): Promise<ActionResult> {

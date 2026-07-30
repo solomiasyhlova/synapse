@@ -1,16 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 
 const findFirst = vi.fn();
+const create = vi.fn();
 const update = vi.fn();
 const deleteFn = vi.fn();
+const itemTypeFindFirst = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    item: { findFirst, update, delete: deleteFn },
+    item: { findFirst, create, update, delete: deleteFn },
+    itemType: { findFirst: itemTypeFindFirst },
   },
 }));
 
-const { deleteItem, getItemById, updateItem } = await import("./items");
+const { createItem, deleteItem, getItemById, updateItem } = await import("./items");
 
 describe("getItemById", () => {
   it("returns null when the item isn't found or isn't owned by the user", async () => {
@@ -55,6 +58,107 @@ describe("getItemById", () => {
       { id: "col-2", name: "Hooks" },
     ]);
     expect(result?.tags).toEqual([{ id: "tag-1", name: "react" }]);
+  });
+});
+
+describe("createItem", () => {
+  it("returns null when the item type isn't found", async () => {
+    itemTypeFindFirst.mockResolvedValueOnce(null);
+
+    const result = await createItem("user-1", "snippet", { title: "New snippet", tags: [] });
+
+    expect(result).toBeNull();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("creates the item under the resolved type and connects-or-creates tags", async () => {
+    itemTypeFindFirst.mockResolvedValueOnce({
+      id: "type-1",
+      name: "snippet",
+      icon: "Code",
+      color: "#3b82f6",
+    });
+    create.mockResolvedValueOnce({
+      id: "item-1",
+      title: "New snippet",
+      description: null,
+      isFavorite: false,
+      isPinned: false,
+      updatedAt: new Date("2024-01-16"),
+      createdAt: new Date("2024-01-16"),
+      contentType: "TEXT",
+      content: "console.log('hi')",
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: "typescript",
+      itemType: { id: "type-1", name: "snippet", icon: "Code", color: "#3b82f6" },
+      tags: [{ id: "tag-1", name: "js" }],
+      collections: [],
+    });
+
+    const result = await createItem("user-1", "snippet", {
+      title: "New snippet",
+      content: "console.log('hi')",
+      language: "typescript",
+      tags: ["js"],
+    });
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          title: "New snippet",
+          itemTypeId: "type-1",
+          contentType: "TEXT",
+          tags: {
+            connectOrCreate: [
+              {
+                where: { userId_name: { userId: "user-1", name: "js" } },
+                create: { name: "js", userId: "user-1" },
+              },
+            ],
+          },
+        }),
+      }),
+    );
+    expect(result?.collections).toEqual([]);
+  });
+
+  it("stores the URL content type for link items", async () => {
+    itemTypeFindFirst.mockResolvedValueOnce({
+      id: "type-2",
+      name: "link",
+      icon: "Link",
+      color: "#10b981",
+    });
+    create.mockResolvedValueOnce({
+      id: "item-2",
+      title: "Docs",
+      description: null,
+      isFavorite: false,
+      isPinned: false,
+      updatedAt: new Date("2024-01-16"),
+      createdAt: new Date("2024-01-16"),
+      contentType: "URL",
+      content: null,
+      url: "https://example.com",
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: null,
+      itemType: { id: "type-2", name: "link", icon: "Link", color: "#10b981" },
+      tags: [],
+      collections: [],
+    });
+
+    await createItem("user-1", "link", { title: "Docs", url: "https://example.com", tags: [] });
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ contentType: "URL", url: "https://example.com" }),
+      }),
+    );
   });
 });
 
