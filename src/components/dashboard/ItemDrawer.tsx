@@ -1,17 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Copy, Pencil, Pin, Star, Trash2 } from "lucide-react";
 
+import { updateItem } from "@/actions/items";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 import type { ItemDetail } from "@/lib/db/items";
 import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+
+const CONTENT_TYPES = ["snippet", "prompt", "command", "note"];
+const LANGUAGE_TYPES = ["snippet", "command"];
 
 function formatDate(date: string | Date) {
   return new Date(date).toLocaleDateString("en-US", {
@@ -21,15 +28,41 @@ function formatDate(date: string | Date) {
   });
 }
 
+interface EditState {
+  title: string;
+  description: string;
+  content: string;
+  language: string;
+  url: string;
+  tags: string;
+}
+
+function toEditState(item: ItemDetail): EditState {
+  return {
+    title: item.title,
+    description: item.description ?? "",
+    content: item.content ?? "",
+    language: item.language ?? "",
+    url: item.url ?? "",
+    tags: item.tags.map((tag) => tag.name).join(", "),
+  };
+}
+
 export function ItemDrawer() {
+  const router = useRouter();
   const { openItemId, isOpen, close } = useItemDrawer();
   const [item, setItem] = useState<ItemDetail | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [edit, setEdit] = useState<EditState | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!openItemId) return;
 
     let cancelled = false;
     setItem(null);
+    setIsEditing(false);
+    setEdit(null);
 
     fetch(`/api/items/${openItemId}`)
       .then((res) => res.json())
@@ -49,6 +82,51 @@ export function ItemDrawer() {
     if (!value) return;
     await navigator.clipboard.writeText(value);
     toastManager.add({ title: "Copied to clipboard" });
+  }
+
+  function handleEdit() {
+    if (!item) return;
+    setEdit(toEditState(item));
+    setIsEditing(true);
+  }
+
+  function handleCancel() {
+    setIsEditing(false);
+    setEdit(null);
+  }
+
+  async function handleSave() {
+    if (!item || !edit) return;
+
+    setIsSaving(true);
+
+    const isContentType = CONTENT_TYPES.includes(item.itemType.name);
+    const isLanguageType = LANGUAGE_TYPES.includes(item.itemType.name);
+    const isUrlType = item.itemType.name === "link";
+
+    const result = await updateItem(item.id, {
+      title: edit.title,
+      description: edit.description.trim() ? edit.description : null,
+      content: isContentType ? edit.content : null,
+      language: isLanguageType ? edit.language.trim() || null : null,
+      url: isUrlType ? edit.url.trim() || null : null,
+      tags: edit.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+    });
+
+    setIsSaving(false);
+
+    if (result.success && result.data) {
+      setItem(result.data);
+      setIsEditing(false);
+      setEdit(null);
+      toastManager.add({ title: "Item updated" });
+      router.refresh();
+    } else {
+      toastManager.add({ title: "Failed to update item", description: result.error });
+    }
   }
 
   return (
@@ -93,39 +171,167 @@ export function ItemDrawer() {
         </SheetHeader>
 
         <div className="flex items-center gap-1 border-b border-border px-4 pb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(item?.isFavorite && "text-yellow-400")}
-          >
-            <Star className={cn("size-4", item?.isFavorite && "fill-yellow-400")} />
-            Favorite
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Pin className="size-4" />
-            Pin
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleCopy} disabled={!item}>
-            <Copy className="size-4" />
-            Copy
-          </Button>
-          <div className="ml-auto flex items-center gap-1">
-            <Button variant="ghost" size="sm">
-              <Pencil className="size-4" />
-              Edit
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <Trash2 className="size-4" />
-              Delete
-            </Button>
-          </div>
+          {isEditing ? (
+            <div className="ml-auto flex items-center gap-1">
+              <Button variant="ghost" size="sm" onClick={handleCancel} disabled={isSaving}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSave} disabled={isSaving || !edit?.title.trim()}>
+                Save
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(item?.isFavorite && "text-yellow-400")}
+              >
+                <Star className={cn("size-4", item?.isFavorite && "fill-yellow-400")} />
+                Favorite
+              </Button>
+              <Button variant="ghost" size="sm">
+                <Pin className="size-4" />
+                Pin
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleCopy} disabled={!item}>
+                <Copy className="size-4" />
+                Copy
+              </Button>
+              <div className="ml-auto flex items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={handleEdit} disabled={!item}>
+                  <Pencil className="size-4" />
+                  Edit
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                  Delete
+                </Button>
+              </div>
+            </>
+          )}
         </div>
 
-        {item ? (
+        {isEditing && item && edit ? (
+          <div className="flex flex-col gap-5 px-4 pb-4">
+            <section className="space-y-1.5">
+              <label htmlFor="item-title" className="text-xs font-medium text-muted-foreground">
+                Title
+              </label>
+              <Input
+                id="item-title"
+                value={edit.title}
+                onChange={(e) => setEdit({ ...edit, title: e.target.value })}
+              />
+            </section>
+
+            <section className="space-y-1.5">
+              <label
+                htmlFor="item-description"
+                className="text-xs font-medium text-muted-foreground"
+              >
+                Description
+              </label>
+              <Textarea
+                id="item-description"
+                value={edit.description}
+                onChange={(e) => setEdit({ ...edit, description: e.target.value })}
+              />
+            </section>
+
+            {CONTENT_TYPES.includes(item.itemType.name) && (
+              <section className="space-y-1.5">
+                <label
+                  htmlFor="item-content"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  Content
+                </label>
+                <Textarea
+                  id="item-content"
+                  className="min-h-32 font-mono text-xs"
+                  value={edit.content}
+                  onChange={(e) => setEdit({ ...edit, content: e.target.value })}
+                />
+              </section>
+            )}
+
+            {LANGUAGE_TYPES.includes(item.itemType.name) && (
+              <section className="space-y-1.5">
+                <label
+                  htmlFor="item-language"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  Language
+                </label>
+                <Input
+                  id="item-language"
+                  value={edit.language}
+                  onChange={(e) => setEdit({ ...edit, language: e.target.value })}
+                />
+              </section>
+            )}
+
+            {item.itemType.name === "link" && (
+              <section className="space-y-1.5">
+                <label htmlFor="item-url" className="text-xs font-medium text-muted-foreground">
+                  URL
+                </label>
+                <Input
+                  id="item-url"
+                  value={edit.url}
+                  onChange={(e) => setEdit({ ...edit, url: e.target.value })}
+                />
+              </section>
+            )}
+
+            <section className="space-y-1.5">
+              <label htmlFor="item-tags" className="text-xs font-medium text-muted-foreground">
+                Tags
+              </label>
+              <Input
+                id="item-tags"
+                placeholder="comma, separated, tags"
+                value={edit.tags}
+                onChange={(e) => setEdit({ ...edit, tags: e.target.value })}
+              />
+            </section>
+
+            <section className="space-y-1.5">
+              <h3 className="text-xs font-medium text-muted-foreground">Details</h3>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Type</span>
+                <Badge variant="outline" className="capitalize">
+                  {item.itemType.name}
+                </Badge>
+              </div>
+              {item.collections.length > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Collections</span>
+                  <div className="flex flex-wrap justify-end gap-1.5">
+                    {item.collections.map((collection) => (
+                      <Badge key={collection.id} variant="secondary">
+                        {collection.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Created</span>
+                <span>{formatDate(item.createdAt)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Updated</span>
+                <span>{formatDate(item.updatedAt)}</span>
+              </div>
+            </section>
+          </div>
+        ) : item ? (
           <div className="flex flex-col gap-5 px-4 pb-4">
             {item.description && (
               <section className="space-y-1.5">

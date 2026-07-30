@@ -89,6 +89,52 @@ export async function getItemById(userId: string, id: string): Promise<ItemDetai
   };
 }
 
+export interface UpdateItemData {
+  title: string;
+  description?: string | null;
+  content?: string | null;
+  url?: string | null;
+  language?: string | null;
+  tags: string[];
+}
+
+export async function updateItem(
+  userId: string,
+  id: string,
+  data: UpdateItemData,
+): Promise<ItemDetail | null> {
+  const existing = await prisma.item.findFirst({ where: { id, userId }, select: { id: true } });
+  if (!existing) return null;
+
+  const item = await prisma.item.update({
+    where: { id },
+    data: {
+      title: data.title,
+      description: data.description ?? null,
+      content: data.content ?? null,
+      url: data.url ?? null,
+      language: data.language ?? null,
+      tags: {
+        set: [],
+        connectOrCreate: data.tags.map((name) => ({
+          where: { userId_name: { userId, name } },
+          create: { name, userId },
+        })),
+      },
+    },
+    include: {
+      itemType: { select: { id: true, name: true, icon: true, color: true } },
+      tags: { select: { id: true, name: true } },
+      collections: { include: { collection: { select: { id: true, name: true } } } },
+    },
+  });
+
+  return {
+    ...item,
+    collections: item.collections.map(({ collection }) => collection),
+  };
+}
+
 const SYSTEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];
 
 export async function getSystemItemTypes(userId: string): Promise<ItemTypeWithCount[]> {

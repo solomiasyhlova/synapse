@@ -1,16 +1,31 @@
-# Current Feature
+# Current Feature: Item Drawer — Edit Mode
 
 ## Status
 
-<!-- Not Started | In Progress | Complete -->
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Edit button in the drawer's action bar toggles inline edit mode (same drawer, no navigation)
+- Action bar replaced with Save/Cancel while editing
+- Cancel discards changes and returns to view mode
+- Save persists via server action, returns to view mode, refreshes drawer data, and shows a success/error toast
+- Editable for all types: Title (required), Description (optional textarea), Tags (comma-separated → array on save)
+- Editable per type: Content (textarea) for snippet/prompt/command/note; Language (text) for snippet/command; URL (text) for link
+- Item type, Collections, and Created/Updated dates are display-only in edit mode
+- `updateItem(itemId, data)` server action in `src/actions/items.ts` — Zod validation, `auth()` session check, ownership check, `{ success, data, error }` pattern
+- `updateItem` query function in `src/lib/db/items.ts` — tags: disconnect all + connect-or-create new; returns updated `ItemDetail`
+- After save: `router.refresh()` so underlying card list reflects changes
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Zod schema: title (non-empty trimmed string), description (string|null, optional), content (string|null, optional), url (valid URL string|null, optional), language (string|null, optional), tags (array of trimmed non-empty strings)
+- Zod errors returned in `{ success: false, error }` for client display
+- No form library — controlled inputs with local state
+- Client-side: disable Save when title is empty
+- Server-side Zod validation is the source of truth
+- Content textarea is plain (no code editor yet — later work)
+- Spec source: context/features/item-drawer-edit-spec.md
 
 ## History
 
