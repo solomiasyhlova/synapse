@@ -1,22 +1,16 @@
-# Current Feature: Items List View
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started | In Progress | Complete -->
 
 ## Goals
 
-- Create dynamic route `/items/[type]` (e.g., /items/snippets, /items/notes)
-- Fetch and display items filtered by type
-- Responsive grid of ItemCard components, two columns on medium and up
-- Each card has a left border colored by item type
-- Follow existing codebase patterns
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Source spec: context/features/item-list-view-spec.md
-- Route matches the routing map in context/project-overview.md (`/items/[type]`)
-- Reuse existing ItemCard styling/patterns from dashboard items work rather than introducing new card conventions
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -42,3 +36,4 @@ In Progress
 - Forgot Password: /forgot-password and /reset-password pages, requestPasswordReset/resetPassword server actions (src/actions/auth.ts), password reset tokens reuse the VerificationToken model via a namespaced identifier (src/lib/auth/password-reset-token.ts) to avoid colliding with email-verification tokens, sendPasswordResetEmail via Resend (src/lib/email/send-password-reset-email.ts), 1-hour token TTL, GitHub-only accounts silently skipped (no passwordHash), "Forgot password?" link added to SignInForm, also fixed a pre-existing Base UI nativeButton warning on Button+Link usages across auth pages
 - Profile Page: expanded /profile with real per-user data (src/lib/db/profile.ts using session.user.id instead of the demo-user pattern) — member-since date, usage stats and item-type breakdown (ProfileStats.tsx), ChangePasswordDialog (email/password accounts only, gated on passwordHash) and DeleteAccountDialog (type-to-confirm, cascading delete) via src/actions/profile.ts, changePasswordSchema added to src/lib/validations/auth.ts
 - Rate Limiting for Auth: Upstash Redis + @upstash/ratelimit sliding-window utility (src/lib/rate-limit.ts, fails open if Upstash unconfigured/unavailable), applied to register (API route, 429 + Retry-After header) and to login/forgot-password/reset-password/resend-verification (Server Actions in src/actions/auth.ts, surfaced via existing success/error result pattern since Server Actions can't set HTTP status codes), fixed a pre-existing bug where SignInForm/ResendVerificationButton always showed "email sent" regardless of the action result
+- Items List View: dynamic route /items/[type] (src/app/(app)/items/[type]/page.tsx) fetching items filtered by type via new getItemTypeByName/getItemsByType (src/lib/db/items.ts), responsive 2-col ItemCard grid (src/components/dashboard/ItemCard.tsx) reusing ItemRow's border-color+TypeIcon pattern, plural-to-singular slug mapping (src/lib/item-type-slug.ts), moved dashboard layout/page into a new (app) route group so /items/[type] shares the sidebar/topbar (no URL changes), fixed pre-existing Sidebar.tsx/ItemRow.tsx links that pointed at singular type names, added /items/* to proxy.ts's protected matcher
