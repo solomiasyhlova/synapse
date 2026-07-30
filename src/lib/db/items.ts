@@ -43,6 +43,21 @@ export async function getRecentItems(
   });
 }
 
+export async function getItemTypeByName(userId: string, name: string): Promise<ItemType | null> {
+  return prisma.itemType.findFirst({
+    where: { name, OR: [{ isSystem: true }, { userId }] },
+    select: { id: true, name: true, icon: true, color: true },
+  });
+}
+
+export async function getItemsByType(userId: string, typeName: string): Promise<ItemWithType[]> {
+  return prisma.item.findMany({
+    where: { userId, itemType: { name: typeName } },
+    orderBy: { updatedAt: "desc" },
+    include: { itemType: true },
+  });
+}
+
 const SYSTEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];
 
 export async function getSystemItemTypes(userId: string): Promise<ItemTypeWithCount[]> {

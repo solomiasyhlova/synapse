@@ -4,6 +4,7 @@ import { Pin, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import type { ItemWithType } from "@/lib/db/items";
+import { typeNameToSlug } from "@/lib/item-type-slug";
 
 function formatShortDate(date: Date) {
   return date.toLocaleDateString("en-US", {
@@ -14,7 +15,7 @@ function formatShortDate(date: Date) {
 
 export function ItemRow({ item }: { item: ItemWithType }) {
   const type = item.itemType;
-  const href = `/items/${type.name}/${item.id}`;
+  const href = `/items/${typeNameToSlug(type.name)}/${item.id}`;
 
   return (
     <Link href={href} className="block">

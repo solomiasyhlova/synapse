@@ -12,6 +12,7 @@ import { UserMenu } from "@/components/dashboard/UserMenu";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
 import type { CollectionWithStats } from "@/lib/db/collections";
 import type { ItemTypeWithCount } from "@/lib/db/items";
+import { typeNameToSlug } from "@/lib/item-type-slug";
 import { currentUser } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -116,7 +117,7 @@ export function SidebarContent({
           <nav className={cn("space-y-0.5", !collapsed && !isTypesOpen && "hidden")}>
             {itemTypes.map((type) => {
               const isLocked = (type.name === "file" || type.name === "image") && !currentUser.isPro;
-              const href = `/items/${type.name}`;
+              const href = `/items/${typeNameToSlug(type.name)}`;
               const isActive = pathname === href;
               return (
                 <Link
