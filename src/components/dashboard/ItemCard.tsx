@@ -34,9 +34,9 @@ export function ItemCard({ item }: { item: ItemWithType }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {item.description && (
-            <p className="line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
-          )}
+          <p className="line-clamp-2 min-h-10 text-sm text-muted-foreground">
+            {item.description}
+          </p>
           <p className="text-xs text-muted-foreground">{formatShortDate(item.updatedAt)}</p>
         </CardContent>
       </Card>

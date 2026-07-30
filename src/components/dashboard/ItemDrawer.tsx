@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { CodeEditor } from "@/components/dashboard/CodeEditor";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 import type { ItemDetail } from "@/lib/db/items";
@@ -282,12 +283,20 @@ export function ItemDrawer() {
                 >
                   Content
                 </label>
-                <Textarea
-                  id="item-content"
-                  className="min-h-32 font-mono text-xs"
-                  value={edit.content}
-                  onChange={(e) => setEdit({ ...edit, content: e.target.value })}
-                />
+                {LANGUAGE_TYPES.includes(item.itemType.name) ? (
+                  <CodeEditor
+                    value={edit.content}
+                    language={edit.language}
+                    onChange={(value) => setEdit({ ...edit, content: value })}
+                  />
+                ) : (
+                  <Textarea
+                    id="item-content"
+                    className="min-h-32 font-mono text-xs"
+                    value={edit.content}
+                    onChange={(e) => setEdit({ ...edit, content: e.target.value })}
+                  />
+                )}
               </section>
             )}
 
@@ -374,9 +383,13 @@ export function ItemDrawer() {
             {item.content && (
               <section className="space-y-1.5">
                 <h3 className="text-xs font-medium text-muted-foreground">Content</h3>
-                <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs whitespace-pre-wrap">
-                  {item.content}
-                </pre>
+                {LANGUAGE_TYPES.includes(item.itemType.name) ? (
+                  <CodeEditor value={item.content} language={item.language} readOnly />
+                ) : (
+                  <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs whitespace-pre-wrap">
+                    {item.content}
+                  </pre>
+                )}
               </section>
             )}
 

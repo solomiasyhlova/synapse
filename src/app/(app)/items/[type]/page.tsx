@@ -1,10 +1,15 @@
 import { notFound, redirect } from "next/navigation";
+import { Plus } from "lucide-react";
 
 import { auth } from "@/auth";
+import { Button } from "@/components/ui/button";
+import { CreateItemDialog } from "@/components/dashboard/CreateItemDialog";
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
-import { getItemsByType, getItemTypeByName } from "@/lib/db/items";
+import { getItemsByType, getItemTypeByName, getSystemItemTypes } from "@/lib/db/items";
 import { slugToTypeName } from "@/lib/item-type-slug";
+
+const EXCLUDED_TYPES = ["file", "image"];
 
 export default async function ItemsByTypePage({
   params,
@@ -22,7 +27,12 @@ export default async function ItemsByTypePage({
   const itemType = await getItemTypeByName(userId, typeName);
   if (!itemType) notFound();
 
-  const items = await getItemsByType(userId, typeName);
+  const [items, itemTypes] = await Promise.all([
+    getItemsByType(userId, typeName),
+    getSystemItemTypes(userId),
+  ]);
+
+  const canCreate = !EXCLUDED_TYPES.includes(typeName);
 
   return (
     <main className="flex-1 space-y-6 overflow-y-auto p-6">
@@ -36,6 +46,18 @@ export default async function ItemsByTypePage({
             {items.length} {items.length === 1 ? "item" : "items"}
           </p>
         </div>
+        {canCreate && (
+          <CreateItemDialog
+            itemTypes={itemTypes}
+            defaultTypeName={typeName}
+            trigger={
+              <Button className="ml-auto">
+                <Plus />
+                <span className="capitalize">Add {typeName}</span>
+              </Button>
+            }
+          />
+        )}
       </div>
 
       {items.length === 0 ? (

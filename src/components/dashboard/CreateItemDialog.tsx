@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CodeEditor } from "@/components/dashboard/CodeEditor";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import type { ItemTypeWithCount } from "@/lib/db/items";
 import { toastManager } from "@/lib/toast";
@@ -37,22 +38,25 @@ const EMPTY_FORM = {
 
 interface CreateItemDialogProps {
   itemTypes: ItemTypeWithCount[];
+  defaultTypeName?: string;
+  trigger?: React.ReactElement;
 }
 
-export function CreateItemDialog({ itemTypes }: CreateItemDialogProps) {
+export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: CreateItemDialogProps) {
   const router = useRouter();
   const types = itemTypes.filter((type) => !EXCLUDED_TYPES.includes(type.name));
 
   const [open, setOpen] = useState(false);
-  const [typeName, setTypeName] = useState(types[0]?.name ?? "");
+  const [typeName, setTypeName] = useState(defaultTypeName ?? types[0]?.name ?? "");
   const [form, setForm] = useState(EMPTY_FORM);
   const [isCreating, setIsCreating] = useState(false);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
-    if (!nextOpen) {
+    if (nextOpen) {
+      setTypeName(defaultTypeName ?? types[0]?.name ?? "");
+    } else {
       setForm(EMPTY_FORM);
-      setTypeName(types[0]?.name ?? "");
     }
   }
 
@@ -95,10 +99,12 @@ export function CreateItemDialog({ itemTypes }: CreateItemDialogProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
-          <Button>
-            <Plus />
-            New item
-          </Button>
+          trigger ?? (
+            <Button>
+              <Plus />
+              New item
+            </Button>
+          )
         }
       />
       <DialogContent className="max-h-[85vh] max-w-lg gap-3 overflow-y-auto">
@@ -161,12 +167,20 @@ export function CreateItemDialog({ itemTypes }: CreateItemDialogProps) {
               <label htmlFor="create-item-content" className="text-sm font-medium">
                 Content
               </label>
-              <Textarea
-                id="create-item-content"
-                className="min-h-20 font-mono text-xs"
-                value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
-              />
+              {LANGUAGE_TYPES.includes(typeName) ? (
+                <CodeEditor
+                  value={form.content}
+                  language={form.language}
+                  onChange={(value) => setForm({ ...form, content: value })}
+                />
+              ) : (
+                <Textarea
+                  id="create-item-content"
+                  className="min-h-20 font-mono text-xs"
+                  value={form.content}
+                  onChange={(e) => setForm({ ...form, content: e.target.value })}
+                />
+              )}
             </div>
           )}
 
