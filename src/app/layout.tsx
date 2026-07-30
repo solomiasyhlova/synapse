@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistMono.variable} h-full antialiased`}
+      className={`dark ${geistMono.variable} h-full overflow-hidden antialiased`}
     >
       <body className="h-full flex flex-col overflow-hidden">
         <ToastProvider>{children}</ToastProvider>

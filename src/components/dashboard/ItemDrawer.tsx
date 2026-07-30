@@ -160,7 +160,7 @@ export function ItemDrawer() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
+      <SheetContent className="w-full overflow-y-auto data-[side=right]:sm:max-w-120">
         <SheetHeader>
           <div className="flex items-center gap-2">
             {item ? (
@@ -199,7 +199,7 @@ export function ItemDrawer() {
           </div>
         </SheetHeader>
 
-        <div className="flex items-center gap-1 border-b border-border px-4 pb-4">
+        <div className="flex flex-wrap items-center gap-1 border-b border-border px-4 pb-4">
           {isEditing ? (
             <div className="ml-auto flex items-center gap-1">
               <Button variant="ghost" size="sm" onClick={handleCancel} disabled={isSaving}>
@@ -227,7 +227,7 @@ export function ItemDrawer() {
                 <Copy className="size-4" />
                 Copy
               </Button>
-              <div className="ml-auto flex items-center gap-1">
+              <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={handleEdit} disabled={!item}>
                   <Pencil className="size-4" />
                   Edit

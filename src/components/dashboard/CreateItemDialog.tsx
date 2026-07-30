@@ -10,7 +10,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -102,12 +101,11 @@ export function CreateItemDialog({ itemTypes }: CreateItemDialogProps) {
           </Button>
         }
       />
-      <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-lg gap-3 overflow-y-auto">
         <DialogHeader>
           <DialogTitle>New item</DialogTitle>
-          <DialogDescription>Save a snippet, prompt, command, note or link.</DialogDescription>
         </DialogHeader>
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
           <div className="flex flex-wrap gap-1.5">
             {types.map((type) => {
               const isSelected = type.name === typeName;
@@ -165,7 +163,7 @@ export function CreateItemDialog({ itemTypes }: CreateItemDialogProps) {
               </label>
               <Textarea
                 id="create-item-content"
-                className="min-h-32 font-mono text-xs"
+                className="min-h-20 font-mono text-xs"
                 value={form.content}
                 onChange={(e) => setForm({ ...form, content: e.target.value })}
               />
