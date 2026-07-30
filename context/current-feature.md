@@ -1,26 +1,16 @@
-# Current Feature: Item Drawer
+# Current Feature
 
 ## Status
 
-In Progress (implemented, awaiting browser verification)
+<!-- Not Started | In Progress | Complete -->
 
 ## Goals
 
-- Right-side slide-in drawer (shadcn Sheet) opens when clicking an ItemCard, replacing the need for a separate item detail page
-- Works on both the dashboard and items list pages
-- Client wrapper component manages drawer open/selected-item state (pages are server components)
-- Drawer shows full item detail: content, collections, language, etc.
-- Action bar in the drawer: Favorite (star, yellow when active), Pin, Copy, Edit (pencil), Delete (trash, right-aligned) — layout per screenshot
-- Fetch-on-click with a skeleton/loading state — no page navigation, should feel snappy
-- Code editor and other item-type-specific extras are out of scope for now — just the details display
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Card data (title, description, tags, etc.) continues to be fetched by the server component as today
-- Full item detail is fetched on click via a new API route: `/api/items/[id]`
-- Query function for full item detail lives in `lib/db/items.ts`; the API route calls it with an auth check
-- Visual reference: `context/screenshots/dashboard-ui-drawer.png`
-- Tests: `src/lib/db/items.test.ts` covers `getItemById` (not-found → null, and flattening joined `ItemCollection[]` into plain collection objects) — mocks `@/lib/prisma`, following the `vi.mock()` convention in coding-standards.md
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -49,3 +39,4 @@ In Progress (implemented, awaiting browser verification)
 - Items List View: dynamic route /items/[type] (src/app/(app)/items/[type]/page.tsx) fetching items filtered by type via new getItemTypeByName/getItemsByType (src/lib/db/items.ts), responsive 2-col ItemCard grid (src/components/dashboard/ItemCard.tsx) reusing ItemRow's border-color+TypeIcon pattern, plural-to-singular slug mapping (src/lib/item-type-slug.ts), moved dashboard layout/page into a new (app) route group so /items/[type] shares the sidebar/topbar (no URL changes), fixed pre-existing Sidebar.tsx/ItemRow.tsx links that pointed at singular type names, added /items/* to proxy.ts's protected matcher
 - Vitest Setup: vitest.config.ts (node environment, @/* alias, src/**/*.test.ts only so component tests aren't picked up), test/test:watch scripts in package.json, example unit test for src/lib/item-type-slug.ts as a pattern for future server-action/utility tests
 - Three-Column Items Grid: added `lg:grid-cols-3` breakpoint to the items grid (src/app/(app)/items/[type]/page.tsx), keeping the existing 1/2-column responsive breakpoints below it; no ItemCard changes needed since it's already width-fluid
+- Item Drawer: right-side shadcn Sheet opens on item click showing full detail (content, language, tags, collections, created/updated) fetched via new auth-checked `/api/items/[id]` route calling `getItemById` (src/lib/db/items.ts); `ItemDrawerProvider` context (src/components/dashboard/item-drawer-context.tsx) shared app-wide via the `(app)` layout so both the dashboard and `/items/[type]` pages open the same drawer instance; `ItemCard`/`ItemRow` converted from `<Link>` (to a `/items/[type]/[id]` route that never had a page) to buttons that open the drawer instead; action bar (Favorite/Pin/Copy/Edit/Delete) renders per the screenshot but only Copy is wired (clipboard) — Favorite/Pin/Edit/Delete have no mutations yet; unit tests for `getItemById` in src/lib/db/items.test.ts
