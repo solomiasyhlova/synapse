@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { CreateItemDialog } from "@/components/dashboard/CreateItemDialog";
+import { FileListRow } from "@/components/dashboard/FileListRow";
 import { ImageCard } from "@/components/dashboard/ImageCard";
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
@@ -57,6 +58,12 @@ export default async function ItemsByTypePage({
 
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">No items yet.</p>
+      ) : typeName === "file" ? (
+        <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+          {items.map((item) => (
+            <FileListRow key={item.id} item={item} />
+          ))}
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) =>

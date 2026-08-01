@@ -20,9 +20,11 @@ export interface ItemWithType {
   description: string | null;
   isFavorite: boolean;
   isPinned: boolean;
+  createdAt: Date;
   updatedAt: Date;
   fileUrl: string | null;
   fileName: string | null;
+  fileSize: number | null;
   itemType: ItemType;
 }
 
