@@ -21,6 +21,8 @@ export interface ItemWithType {
   isFavorite: boolean;
   isPinned: boolean;
   updatedAt: Date;
+  fileUrl: string | null;
+  fileName: string | null;
   itemType: ItemType;
 }
 

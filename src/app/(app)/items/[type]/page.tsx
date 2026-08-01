@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { CreateItemDialog } from "@/components/dashboard/CreateItemDialog";
+import { ImageCard } from "@/components/dashboard/ImageCard";
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { getItemsByType, getItemTypeByName, getSystemItemTypes } from "@/lib/db/items";
@@ -58,9 +59,13 @@ export default async function ItemsByTypePage({
         <p className="text-sm text-muted-foreground">No items yet.</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
-            <ItemCard key={item.id} item={item} />
-          ))}
+          {items.map((item) =>
+            typeName === "image" ? (
+              <ImageCard key={item.id} item={item} />
+            ) : (
+              <ItemCard key={item.id} item={item} />
+            ),
+          )}
         </div>
       )}
     </main>

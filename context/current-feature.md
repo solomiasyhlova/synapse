@@ -1,16 +1,22 @@
-# Current Feature
+# Current Feature: Image Gallery View
 
 ## Status
 
-<!-- Not Started | In Progress | Complete -->
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Create an image thumbnail card to replace the current item card (for the image type)
+- Show an image grid/gallery with 3 columns
+- Displays image thumbnail with 16:9 aspect ratio (`aspect-video`)
+- Uses `object-cover` to fill the card (may crop edges)
+- Subtle hover zoom effect (5% scale with 300ms transition)
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Source spec: context/features/image-display-spec.md
+- Scope is the image item type only — replaces the current generic `ItemCard` with a dedicated thumbnail card when viewing images (e.g. `/items/images`)
+- Existing grid pattern for items lives in src/app/(app)/items/[type]/page.tsx (currently up to `lg:grid-cols-3`); confirm whether this feature reuses/overrides that or is a separate gallery layout
 
 ## History
 
