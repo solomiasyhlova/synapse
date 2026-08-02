@@ -17,18 +17,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CodeEditor } from "@/components/dashboard/CodeEditor";
 import { FileUpload, type UploadedFile } from "@/components/dashboard/FileUpload";
-import { MarkdownEditor } from "@/components/dashboard/MarkdownEditor";
+import { ItemContentField } from "@/components/dashboard/ItemContentField";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import type { ItemTypeWithCount } from "@/lib/db/items";
+import { CONTENT_TYPES, FILE_TYPES, LANGUAGE_TYPES } from "@/lib/item-type-kinds";
 import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-
-const CONTENT_TYPES = ["snippet", "prompt", "command", "note"];
-const LANGUAGE_TYPES = ["snippet", "command"];
-const MARKDOWN_TYPES = ["note", "prompt"];
-const FILE_TYPES = ["file", "image"];
 
 const EMPTY_FORM = {
   title: "",
@@ -183,25 +178,13 @@ export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: Create
               <label htmlFor="create-item-content" className="text-sm font-medium">
                 Content
               </label>
-              {LANGUAGE_TYPES.includes(typeName) ? (
-                <CodeEditor
-                  value={form.content}
-                  language={form.language}
-                  onChange={(value) => setForm({ ...form, content: value })}
-                />
-              ) : MARKDOWN_TYPES.includes(typeName) ? (
-                <MarkdownEditor
-                  value={form.content}
-                  onChange={(value) => setForm({ ...form, content: value })}
-                />
-              ) : (
-                <Textarea
-                  id="create-item-content"
-                  className="min-h-20 font-mono text-xs"
-                  value={form.content}
-                  onChange={(e) => setForm({ ...form, content: e.target.value })}
-                />
-              )}
+              <ItemContentField
+                id="create-item-content"
+                typeName={typeName}
+                value={form.content}
+                language={form.language}
+                onChange={(content) => setForm({ ...form, content })}
+              />
             </div>
           )}
 

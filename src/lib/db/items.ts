@@ -76,14 +76,16 @@ export interface ItemDetail extends ItemWithType {
   collections: { id: string; name: string }[];
 }
 
+const ITEM_DETAIL_INCLUDE = {
+  itemType: { select: { id: true, name: true, icon: true, color: true } },
+  tags: { select: { id: true, name: true } },
+  collections: { include: { collection: { select: { id: true, name: true } } } },
+};
+
 export async function getItemById(userId: string, id: string): Promise<ItemDetail | null> {
   const item = await prisma.item.findFirst({
     where: { id, userId },
-    include: {
-      itemType: { select: { id: true, name: true, icon: true, color: true } },
-      tags: { select: { id: true, name: true } },
-      collections: { include: { collection: { select: { id: true, name: true } } } },
-    },
+    include: ITEM_DETAIL_INCLUDE,
   });
   if (!item) return null;
 
@@ -141,11 +143,7 @@ export async function createItem(
         })),
       },
     },
-    include: {
-      itemType: { select: { id: true, name: true, icon: true, color: true } },
-      tags: { select: { id: true, name: true } },
-      collections: { include: { collection: { select: { id: true, name: true } } } },
-    },
+    include: ITEM_DETAIL_INCLUDE,
   });
 
   return {
@@ -187,11 +185,7 @@ export async function updateItem(
         })),
       },
     },
-    include: {
-      itemType: { select: { id: true, name: true, icon: true, color: true } },
-      tags: { select: { id: true, name: true } },
-      collections: { include: { collection: { select: { id: true, name: true } } } },
-    },
+    include: ITEM_DETAIL_INCLUDE,
   });
 
   return {
