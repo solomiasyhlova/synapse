@@ -2,15 +2,20 @@
 
 ## Status
 
-<!-- Not Started | In Progress | Complete -->
+Complete — pending manual browser check
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+Refactor: break up large components/duplicate logic identified by a codebase scan. Pure refactor, no behavior change.
+
+- Split `ItemDrawer.tsx` (522 lines) into focused pieces: action bar, edit-mode form, read-only view, delete-confirmation dialog
+- Extract the duplicated "content field" chooser (CodeEditor vs MarkdownEditor vs Textarea, gated by `CONTENT_TYPES`/`LANGUAGE_TYPES`/`MARKDOWN_TYPES`) out of `ItemDrawer.tsx` and `CreateItemDialog.tsx` into one shared component + one shared constants file
+- Extract the repeated Prisma `include` shape (`itemType`/`tags`/`collections`) in `src/lib/db/items.ts` into a shared constant
+- Sidebar.tsx explicitly out of scope for this pass
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Pure refactor — behavior, styling, and UX should be identical before/after. Verify via `npm run build`, `npm run test`, and manual browser check of drawer view/edit/delete + create-item dialog across a snippet, note, link, and image.
 
 ## History
 
