@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 
 import { AuthCard } from "@/components/auth/AuthCard";
 import { ResendVerificationButton } from "@/components/auth/ResendVerificationButton";
+import { VerifyEmailButton } from "@/components/auth/VerifyEmailButton";
 import { Button } from "@/components/ui/button";
-import { consumeVerificationToken } from "@/lib/auth/verification-token";
+import { checkVerificationToken } from "@/lib/auth/verification-token";
 import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
 
 interface VerifyEmailPageProps {
@@ -32,18 +33,9 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
     );
   }
 
-  const result = await consumeVerificationToken(token);
-
-  if (result.status === "verified" || result.status === "already-verified") {
-    return (
-      <AuthCard title="Email verified" description="Your email has been verified.">
-        <p className="text-sm text-muted-foreground">You can now sign in to your account.</p>
-        <Button render={<Link href="/sign-in" />} nativeButton={false} className="w-full">
-          Sign in
-        </Button>
-      </AuthCard>
-    );
-  }
+  // Read-only check on render — actual consumption happens only when the user
+  // clicks "Verify email", so link prefetchers (Outlook Safe Links, etc.) can't burn it.
+  const result = await checkVerificationToken(token);
 
   if (result.status === "expired") {
     return (
@@ -54,14 +46,22 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
     );
   }
 
+  if (result.status === "invalid") {
+    return (
+      <AuthCard title="Invalid link" description="This verification link is invalid.">
+        <p className="text-sm text-muted-foreground">
+          The link may have already been used. Try signing in, or register again if needed.
+        </p>
+        <Button render={<Link href="/sign-in" />} nativeButton={false} variant="ghost" className="w-full">
+          Back to sign in
+        </Button>
+      </AuthCard>
+    );
+  }
+
   return (
-    <AuthCard title="Invalid link" description="This verification link is invalid.">
-      <p className="text-sm text-muted-foreground">
-        The link may have already been used. Try signing in, or register again if needed.
-      </p>
-      <Button render={<Link href="/sign-in" />} nativeButton={false} variant="ghost" className="w-full">
-        Back to sign in
-      </Button>
+    <AuthCard title="Verify your email" description="Confirm to finish verifying your account.">
+      <VerifyEmailButton token={token} />
     </AuthCard>
   );
 }

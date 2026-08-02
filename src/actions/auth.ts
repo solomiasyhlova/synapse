@@ -7,7 +7,7 @@ import { ZodError } from "zod";
 import { signIn, signOut } from "@/auth";
 import { signInSchema, forgotPasswordSchema, resetPasswordSchema } from "@/lib/validations/auth";
 import { prisma } from "@/lib/prisma";
-import { createVerificationToken } from "@/lib/auth/verification-token";
+import { createVerificationToken, consumeVerificationToken } from "@/lib/auth/verification-token";
 import {
   createPasswordResetToken,
   consumePasswordResetToken,
@@ -96,6 +96,27 @@ export async function resendVerificationEmail(email: string): Promise<ActionResu
     return { success: true };
   } catch (error) {
     console.error("Failed to resend verification email:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function verifyEmail(token: string): Promise<ActionResult> {
+  try {
+    const result = await consumeVerificationToken(token);
+
+    if (result.status === "verified" || result.status === "already-verified") {
+      return { success: true };
+    }
+    if (result.status === "expired") {
+      return {
+        success: false,
+        error: "This verification link has expired. Request a new one.",
+        code: "expired",
+      };
+    }
+    return { success: false, error: "This verification link is invalid.", code: "invalid" };
+  } catch (error) {
+    console.error("Failed to verify email:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

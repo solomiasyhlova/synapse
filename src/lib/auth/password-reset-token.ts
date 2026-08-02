@@ -2,6 +2,7 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
+import { hashToken } from "@/lib/auth/token-hash";
 
 const TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -15,7 +16,9 @@ export async function createPasswordResetToken(email: string) {
   const identifier = `${IDENTIFIER_PREFIX}${email}`;
 
   await prisma.verificationToken.deleteMany({ where: { identifier } });
-  await prisma.verificationToken.create({ data: { identifier, token, expires } });
+  await prisma.verificationToken.create({
+    data: { identifier, token: hashToken(token), expires },
+  });
 
   return token;
 }
@@ -23,7 +26,9 @@ export async function createPasswordResetToken(email: string) {
 export type PasswordResetTokenStatus = "valid" | "expired" | "invalid";
 
 export async function checkPasswordResetToken(token: string): Promise<PasswordResetTokenStatus> {
-  const verificationToken = await prisma.verificationToken.findFirst({ where: { token } });
+  const verificationToken = await prisma.verificationToken.findFirst({
+    where: { token: hashToken(token) },
+  });
   if (!verificationToken || !verificationToken.identifier.startsWith(IDENTIFIER_PREFIX)) {
     return "invalid";
   }
@@ -40,7 +45,10 @@ export async function consumePasswordResetToken(
   token: string,
   newPassword: string
 ): Promise<ConsumePasswordResetTokenResult> {
-  const verificationToken = await prisma.verificationToken.findFirst({ where: { token } });
+  const hashedToken = hashToken(token);
+  const verificationToken = await prisma.verificationToken.findFirst({
+    where: { token: hashedToken },
+  });
   if (!verificationToken || !verificationToken.identifier.startsWith(IDENTIFIER_PREFIX)) {
     return { status: "invalid" };
   }
@@ -49,7 +57,7 @@ export async function consumePasswordResetToken(
   const { expires } = verificationToken;
 
   await prisma.verificationToken.delete({
-    where: { identifier_token: { identifier: verificationToken.identifier, token } },
+    where: { identifier_token: { identifier: verificationToken.identifier, token: hashedToken } },
   });
 
   if (expires < new Date()) return { status: "expired" };
