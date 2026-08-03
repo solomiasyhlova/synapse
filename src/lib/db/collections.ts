@@ -71,6 +71,19 @@ export async function getRecentCollections(
   return collections.map(toCollectionWithStats);
 }
 
+export interface CollectionOption {
+  id: string;
+  name: string;
+}
+
+export async function getAllCollections(userId: string): Promise<CollectionOption[]> {
+  return prisma.collection.findMany({
+    where: { userId },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+}
+
 export async function createCollection(
   userId: string,
   data: { name: string; description?: string | null },

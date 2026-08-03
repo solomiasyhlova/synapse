@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CollectionSelect, type CollectionOption } from "@/components/dashboard/CollectionSelect";
 import { FileUpload, type UploadedFile } from "@/components/dashboard/FileUpload";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
@@ -33,15 +34,22 @@ const EMPTY_FORM = {
   url: "",
   tags: "",
   file: null as UploadedFile | null,
+  collectionIds: [] as string[],
 };
 
 interface CreateItemDialogProps {
   itemTypes: ItemTypeWithCount[];
+  collections: CollectionOption[];
   defaultTypeName?: string;
   trigger?: React.ReactElement;
 }
 
-export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: CreateItemDialogProps) {
+export function CreateItemDialog({
+  itemTypes,
+  collections,
+  defaultTypeName,
+  trigger,
+}: CreateItemDialogProps) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -81,6 +89,7 @@ export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: Create
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
+      collectionIds: form.collectionIds,
     });
 
     setIsCreating(false);
@@ -240,6 +249,18 @@ export function CreateItemDialog({ itemTypes, defaultTypeName, trigger }: Create
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
               placeholder="comma, separated, tags"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium">
+              Collections
+              <span className="ml-1 font-normal text-muted-foreground">(optional)</span>
+            </label>
+            <CollectionSelect
+              collections={collections}
+              value={form.collectionIds}
+              onChange={(collectionIds) => setForm({ ...form, collectionIds })}
             />
           </div>
 

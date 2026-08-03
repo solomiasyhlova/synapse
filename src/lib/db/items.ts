@@ -103,6 +103,15 @@ function resolveContentType(typeName: string): ContentType {
   return "TEXT";
 }
 
+async function resolveOwnedCollectionIds(userId: string, collectionIds: string[]): Promise<string[]> {
+  if (collectionIds.length === 0) return [];
+  const owned = await prisma.collection.findMany({
+    where: { id: { in: collectionIds }, userId },
+    select: { id: true },
+  });
+  return owned.map((c) => c.id);
+}
+
 export interface CreateItemData {
   title: string;
   description?: string | null;
@@ -113,6 +122,7 @@ export interface CreateItemData {
   fileName?: string | null;
   fileSize?: number | null;
   tags: string[];
+  collectionIds: string[];
 }
 
 export async function createItem(
@@ -122,6 +132,8 @@ export async function createItem(
 ): Promise<ItemDetail | null> {
   const itemType = await getItemTypeByName(userId, typeName);
   if (!itemType) return null;
+
+  const collectionIds = await resolveOwnedCollectionIds(userId, data.collectionIds);
 
   const item = await prisma.item.create({
     data: {
@@ -142,6 +154,9 @@ export async function createItem(
           create: { name, userId },
         })),
       },
+      collections: {
+        create: collectionIds.map((collectionId) => ({ collectionId })),
+      },
     },
     include: ITEM_DETAIL_INCLUDE,
   });
@@ -159,6 +174,7 @@ export interface UpdateItemData {
   url?: string | null;
   language?: string | null;
   tags: string[];
+  collectionIds: string[];
 }
 
 export async function updateItem(
@@ -168,6 +184,8 @@ export async function updateItem(
 ): Promise<ItemDetail | null> {
   const existing = await prisma.item.findFirst({ where: { id, userId }, select: { id: true } });
   if (!existing) return null;
+
+  const collectionIds = await resolveOwnedCollectionIds(userId, data.collectionIds);
 
   const item = await prisma.item.update({
     where: { id },
@@ -183,6 +201,10 @@ export async function updateItem(
           where: { userId_name: { userId, name } },
           create: { name, userId },
         })),
+      },
+      collections: {
+        deleteMany: {},
+        create: collectionIds.map((collectionId) => ({ collectionId })),
       },
     },
     include: ITEM_DETAIL_INCLUDE,

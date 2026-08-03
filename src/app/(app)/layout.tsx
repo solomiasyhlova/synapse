@@ -8,7 +8,7 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ItemDrawerProvider } from "@/components/dashboard/item-drawer-context";
 import { SidebarProvider } from "@/components/dashboard/sidebar-context";
 import { TopBar } from "@/components/dashboard/TopBar";
-import { getFavoriteCollections, getRecentCollections } from "@/lib/db/collections";
+import { getAllCollections, getFavoriteCollections, getRecentCollections } from "@/lib/db/collections";
 import { getSystemItemTypes } from "@/lib/db/items";
 
 export default async function DashboardLayout({
@@ -19,10 +19,11 @@ export default async function DashboardLayout({
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
 
-  const [itemTypes, favoriteCollections, recentCollections] = await Promise.all([
+  const [itemTypes, favoriteCollections, recentCollections, collections] = await Promise.all([
     getSystemItemTypes(session.user.id),
     getFavoriteCollections(session.user.id),
     getRecentCollections(session.user.id, 5),
+    getAllCollections(session.user.id),
   ]);
 
   const user = {
@@ -37,7 +38,7 @@ export default async function DashboardLayout({
         <div className="flex min-h-0 flex-1 flex-col">
           <header className="flex h-14 shrink-0 items-center border-b border-border">
             <Logo />
-            <TopBar itemTypes={itemTypes} />
+            <TopBar itemTypes={itemTypes} collections={collections} />
           </header>
           <div className="flex min-h-0 flex-1">
             <Sidebar
@@ -55,7 +56,7 @@ export default async function DashboardLayout({
           recentCollections={recentCollections}
           user={user}
         />
-        <ItemDrawer />
+        <ItemDrawer collections={collections} />
       </ItemDrawerProvider>
     </SidebarProvider>
   );

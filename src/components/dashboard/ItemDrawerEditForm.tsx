@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CollectionSelect, type CollectionOption } from "@/components/dashboard/CollectionSelect";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
 import type { ItemDetail } from "@/lib/db/items";
 import { formatDate } from "@/lib/format";
@@ -15,6 +16,7 @@ export interface EditState {
   language: string;
   url: string;
   tags: string;
+  collectionIds: string[];
 }
 
 export function toEditState(item: ItemDetail): EditState {
@@ -25,6 +27,7 @@ export function toEditState(item: ItemDetail): EditState {
     language: item.language ?? "",
     url: item.url ?? "",
     tags: item.tags.map((tag) => tag.name).join(", "),
+    collectionIds: item.collections.map((collection) => collection.id),
   };
 }
 
@@ -32,9 +35,10 @@ interface ItemDrawerEditFormProps {
   item: ItemDetail;
   edit: EditState;
   onChange: (edit: EditState) => void;
+  collections: CollectionOption[];
 }
 
-export function ItemDrawerEditForm({ item, edit, onChange }: ItemDrawerEditFormProps) {
+export function ItemDrawerEditForm({ item, edit, onChange, collections }: ItemDrawerEditFormProps) {
   return (
     <div className="flex flex-col gap-5 px-4 pb-4">
       <section className="space-y-1.5">
@@ -114,6 +118,15 @@ export function ItemDrawerEditForm({ item, edit, onChange }: ItemDrawerEditFormP
       </section>
 
       <section className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">Collections</label>
+        <CollectionSelect
+          collections={collections}
+          value={edit.collectionIds}
+          onChange={(collectionIds) => onChange({ ...edit, collectionIds })}
+        />
+      </section>
+
+      <section className="space-y-1.5">
         <h3 className="text-xs font-medium text-muted-foreground">Details</h3>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Type</span>
@@ -121,18 +134,6 @@ export function ItemDrawerEditForm({ item, edit, onChange }: ItemDrawerEditFormP
             {item.itemType.name}
           </Badge>
         </div>
-        {item.collections.length > 0 && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Collections</span>
-            <div className="flex flex-wrap justify-end gap-1.5">
-              {item.collections.map((collection) => (
-                <Badge key={collection.id} variant="secondary">
-                  {collection.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Created</span>
           <span>{formatDate(item.createdAt)}</span>

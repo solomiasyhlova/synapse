@@ -5,11 +5,13 @@ const create = vi.fn();
 const update = vi.fn();
 const deleteFn = vi.fn();
 const itemTypeFindFirst = vi.fn();
+const collectionFindMany = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     item: { findFirst, create, update, delete: deleteFn },
     itemType: { findFirst: itemTypeFindFirst },
+    collection: { findMany: collectionFindMany },
   },
 }));
 
@@ -65,7 +67,11 @@ describe("createItem", () => {
   it("returns null when the item type isn't found", async () => {
     itemTypeFindFirst.mockResolvedValueOnce(null);
 
-    const result = await createItem("user-1", "snippet", { title: "New snippet", tags: [] });
+    const result = await createItem("user-1", "snippet", {
+      title: "New snippet",
+      tags: [],
+      collectionIds: [],
+    });
 
     expect(result).toBeNull();
     expect(create).not.toHaveBeenCalled();
@@ -103,6 +109,7 @@ describe("createItem", () => {
       content: "console.log('hi')",
       language: "typescript",
       tags: ["js"],
+      collectionIds: [],
     });
 
     expect(create).toHaveBeenCalledWith(
@@ -123,6 +130,53 @@ describe("createItem", () => {
       }),
     );
     expect(result?.collections).toEqual([]);
+  });
+
+  it("only links collections owned by the user, ignoring ids that don't belong to them", async () => {
+    itemTypeFindFirst.mockResolvedValueOnce({
+      id: "type-1",
+      name: "snippet",
+      icon: "Code",
+      color: "#3b82f6",
+    });
+    collectionFindMany.mockResolvedValueOnce([{ id: "col-1" }]);
+    create.mockResolvedValueOnce({
+      id: "item-1",
+      title: "New snippet",
+      description: null,
+      isFavorite: false,
+      isPinned: false,
+      updatedAt: new Date("2024-01-16"),
+      createdAt: new Date("2024-01-16"),
+      contentType: "TEXT",
+      content: null,
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: null,
+      itemType: { id: "type-1", name: "snippet", icon: "Code", color: "#3b82f6" },
+      tags: [],
+      collections: [{ collection: { id: "col-1", name: "React Patterns" } }],
+    });
+
+    await createItem("user-1", "snippet", {
+      title: "New snippet",
+      tags: [],
+      collectionIds: ["col-1", "not-owned"],
+    });
+
+    expect(collectionFindMany).toHaveBeenCalledWith({
+      where: { id: { in: ["col-1", "not-owned"] }, userId: "user-1" },
+      select: { id: true },
+    });
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          collections: { create: [{ collectionId: "col-1" }] },
+        }),
+      }),
+    );
   });
 
   it("stores the URL content type for link items", async () => {
@@ -152,7 +206,12 @@ describe("createItem", () => {
       collections: [],
     });
 
-    await createItem("user-1", "link", { title: "Docs", url: "https://example.com", tags: [] });
+    await createItem("user-1", "link", {
+      title: "Docs",
+      url: "https://example.com",
+      tags: [],
+      collectionIds: [],
+    });
 
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -194,6 +253,7 @@ describe("createItem", () => {
       fileName: "diagram.png",
       fileSize: 1024,
       tags: [],
+      collectionIds: [],
     });
 
     expect(create).toHaveBeenCalledWith(
@@ -216,6 +276,7 @@ describe("updateItem", () => {
     const result = await updateItem("user-1", "item-1", {
       title: "New title",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result).toBeNull();
@@ -253,6 +314,7 @@ describe("updateItem", () => {
       content: "export function useAuth() {}",
       language: "typescript",
       tags: ["hooks"],
+      collectionIds: [],
     });
 
     expect(update).toHaveBeenCalledWith(
@@ -273,6 +335,46 @@ describe("updateItem", () => {
       }),
     );
     expect(result?.collections).toEqual([{ id: "col-1", name: "React Patterns" }]);
+  });
+
+  it("reconciles collections to the new selection, filtering out ids the user doesn't own", async () => {
+    findFirst.mockResolvedValueOnce({ id: "item-1" });
+    collectionFindMany.mockResolvedValueOnce([{ id: "col-2" }]);
+    update.mockResolvedValueOnce({
+      id: "item-1",
+      title: "New title",
+      description: null,
+      isFavorite: false,
+      isPinned: false,
+      updatedAt: new Date("2024-01-16"),
+      createdAt: new Date("2024-01-15"),
+      contentType: "TEXT",
+      content: null,
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: null,
+      itemType: { id: "type-1", name: "snippet", icon: "Code", color: "#3b82f6" },
+      tags: [],
+      collections: [{ collection: { id: "col-2", name: "Hooks" } }],
+    });
+
+    const result = await updateItem("user-1", "item-1", {
+      title: "New title",
+      tags: [],
+      collectionIds: ["col-2", "not-owned"],
+    });
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "item-1" },
+        data: expect.objectContaining({
+          collections: { deleteMany: {}, create: [{ collectionId: "col-2" }] },
+        }),
+      }),
+    );
+    expect(result?.collections).toEqual([{ id: "col-2", name: "Hooks" }]);
   });
 });
 

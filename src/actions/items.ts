@@ -40,6 +40,7 @@ export async function createItem(data: unknown): Promise<ActionResult> {
       fileName: validData.fileName,
       fileSize: validData.fileSize,
       tags: validData.tags,
+      collectionIds: validData.collectionIds,
     });
     if (!created) {
       return { success: false, error: "Item type not found" };

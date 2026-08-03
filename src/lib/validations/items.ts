@@ -9,6 +9,7 @@ export const updateItemSchema = z.object({
   url: z.url().nullable().optional(),
   language: z.string().trim().nullable().optional(),
   tags: z.array(z.string().trim().min(1)),
+  collectionIds: z.array(z.string()),
 });
 
 export type UpdateItemInput = z.infer<typeof updateItemSchema>;
@@ -37,6 +38,7 @@ export const createItemSchema = z
     fileName: z.string().trim().nullable().optional(),
     fileSize: z.number().int().positive().nullable().optional(),
     tags: z.array(z.string().trim().min(1)),
+    collectionIds: z.array(z.string()),
   })
   .refine((data) => data.typeName !== "link" || !!data.url?.trim(), {
     message: "URL is required",

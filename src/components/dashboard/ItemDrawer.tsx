@@ -13,11 +13,16 @@ import { ItemDrawerEditForm, toEditState, type EditState } from "@/components/da
 import { ItemDrawerView } from "@/components/dashboard/ItemDrawerView";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
+import type { CollectionOption } from "@/lib/db/collections";
 import type { ItemDetail } from "@/lib/db/items";
 import { CONTENT_TYPES, LANGUAGE_TYPES } from "@/lib/item-type-kinds";
 import { toastManager } from "@/lib/toast";
 
-export function ItemDrawer() {
+interface ItemDrawerProps {
+  collections: CollectionOption[];
+}
+
+export function ItemDrawer({ collections }: ItemDrawerProps) {
   const router = useRouter();
   const { openItemId, isOpen, close } = useItemDrawer();
   const [item, setItem] = useState<ItemDetail | null>(null);
@@ -86,6 +91,7 @@ export function ItemDrawer() {
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
+      collectionIds: edit.collectionIds,
     });
 
     setIsSaving(false);
@@ -174,7 +180,12 @@ export function ItemDrawer() {
         </div>
 
         {isEditing && item && edit ? (
-          <ItemDrawerEditForm item={item} edit={edit} onChange={setEdit} />
+          <ItemDrawerEditForm
+            item={item}
+            edit={edit}
+            onChange={setEdit}
+            collections={collections}
+          />
         ) : item ? (
           <ItemDrawerView item={item} />
         ) : (

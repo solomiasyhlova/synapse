@@ -19,6 +19,7 @@ describe("createItemSchema", () => {
       typeName: "snippet",
       title: "Hello",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result.success).toBe(true);
@@ -31,6 +32,7 @@ describe("createItemSchema", () => {
       typeName: "link",
       title: "Docs",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result.success).toBe(false);
@@ -43,6 +45,7 @@ describe("createItemSchema", () => {
       typeName: "file",
       title: "Report",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result.success).toBe(false);
@@ -61,6 +64,7 @@ describe("createItemSchema", () => {
       fileName: "report.pdf",
       fileSize: 1024,
       tags: [],
+      collectionIds: [],
     });
 
     expect(result.success).toBe(true);
@@ -76,6 +80,7 @@ describe("createItemSchema", () => {
       fileName: "report.pdf",
       fileSize: 1024,
       tags: [],
+      collectionIds: [],
     });
 
     expect(result.success).toBe(false);

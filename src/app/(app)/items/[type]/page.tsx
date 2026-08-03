@@ -8,6 +8,7 @@ import { FileListRow } from "@/components/dashboard/FileListRow";
 import { ImageCard } from "@/components/dashboard/ImageCard";
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
+import { getAllCollections } from "@/lib/db/collections";
 import { getItemsByType, getItemTypeByName, getSystemItemTypes } from "@/lib/db/items";
 import { slugToTypeName } from "@/lib/item-type-slug";
 
@@ -27,9 +28,10 @@ export default async function ItemsByTypePage({
   const itemType = await getItemTypeByName(userId, typeName);
   if (!itemType) notFound();
 
-  const [items, itemTypes] = await Promise.all([
+  const [items, itemTypes, collections] = await Promise.all([
     getItemsByType(userId, typeName),
     getSystemItemTypes(userId),
+    getAllCollections(userId),
   ]);
 
   return (
@@ -46,6 +48,7 @@ export default async function ItemsByTypePage({
         </div>
         <CreateItemDialog
           itemTypes={itemTypes}
+          collections={collections}
           defaultTypeName={typeName}
           trigger={
             <Button className="ml-auto">

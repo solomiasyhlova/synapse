@@ -7,13 +7,15 @@ import { Input } from "@/components/ui/input";
 import { CreateItemDialog } from "@/components/dashboard/CreateItemDialog";
 import { NewCollectionDialog } from "@/components/dashboard/NewCollectionDialog";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
+import type { CollectionOption } from "@/lib/db/collections";
 import type { ItemTypeWithCount } from "@/lib/db/items";
 
 interface TopBarProps {
   itemTypes: ItemTypeWithCount[];
+  collections: CollectionOption[];
 }
 
-export function TopBar({ itemTypes }: TopBarProps) {
+export function TopBar({ itemTypes, collections }: TopBarProps) {
   const { setMobileOpen } = useSidebar();
 
   return (
@@ -40,7 +42,7 @@ export function TopBar({ itemTypes }: TopBarProps) {
           <Bell />
         </Button>
         <NewCollectionDialog />
-        <CreateItemDialog itemTypes={itemTypes} />
+        <CreateItemDialog itemTypes={itemTypes} collections={collections} />
       </div>
     </div>
   );
