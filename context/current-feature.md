@@ -1,25 +1,14 @@
-# Current Feature: Collection Create
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- "New Collection" button in the top bar opens a create modal
-- Modal has fields: name (required) and description (optional)
-- Creating a collection follows the same patterns as item creation:
-  - Collections are user-scoped (owned by the authenticated user)
-  - Server components fetch collections via `lib/db` functions
-  - Client-side mutation goes through a server action (matching `createItem`'s pattern), not a hand-rolled API route, unless a client component needs to call it outside a form/action context
-- Show a success or failure toast on submit
-- On success, the UI updates to reflect the new collection immediately (list/grid + any place collection counts/names are shown) without a manual refresh
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Follow the existing `CreateItemDialog` / `createItem` action pattern: Zod-validated schema, `auth()`-checked, ownership implied by `userId`.
-- `Collection` model already exists in Prisma schema (`name`, `description`, `isFavorite`, `defaultTypeId`, `userId`) — no migration expected unless a gap is found.
-- Match toast + `router.refresh()` (or equivalent) convention used elsewhere for create/update/delete flows.
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -59,3 +48,4 @@ In Progress
 - Image Gallery View: new `ImageCard` component (src/components/dashboard/ImageCard.tsx) replaces `ItemCard` for the image type only on `/items/[type]` — 16:9 `aspect-video` thumbnail with `object-cover` (crops non-16:9 sources), a 5%/300ms hover zoom (`scale-105`, `duration-300`), and a fallback icon for a missing `fileUrl`; swapped in conditionally in page.tsx (`typeName === "image"`) reusing the existing 1/2/3-column responsive grid rather than introducing a separate gallery layout; `ItemWithType` (src/lib/db/items.ts) gained `fileUrl`/`fileName` fields (Prisma already returned them, only the type was missing them) so `getPinnedItems`/`getRecentItems`/`getItemsByType` all now expose them. Browser-verified with Playwright (upload/render/hover/delete across square, wide, and exact-16:9 test images, plus mobile single-column). Scoped deliberately to the `/items/[type]` grid per spec — the dashboard's pinned/recent sections still render images as generic `ItemRow` list rows, not thumbnails, since that wasn't in the spec's stated scope.
 - File List View: new `FileListRow` component (src/components/dashboard/FileListRow.tsx) replaces `ItemCard` for the `file` type only on `/items/[type]` — single-column list (divide-y bordered container in page.tsx) with an extension-based icon (`.pdf/.txt/.md`→FileText, `.json`→FileJson, `.yaml/.yml/.xml/.toml/.ini`→FileCode, `.csv`→FileSpreadsheet, fallback→File), file name, size + upload date (stacks vertically below `sm:`), hover highlight, and a Download button reusing the existing `/api/items/[id]/download` route with `stopPropagation` so it doesn't also open the drawer; row itself is a `div[role=button]` (not a `<button>`) since it needs to contain a real nested `<a>` for the download link — invalid to nest interactive elements inside a native `<button>`. `ItemWithType` (src/lib/db/items.ts) gained `createdAt`/`fileSize` fields (Prisma already returned them, only the type was missing them, same pattern as the earlier `fileUrl`/`fileName` addition). `image` type untouched, still uses `ImageCard`.
 - ItemDrawer Refactor (Code Scan Cleanup): split the 522-line `ItemDrawer.tsx` into `ItemDrawerActions` (action bar), `ItemDrawerEditForm` (edit-mode fields, exports `EditState`/`toEditState`), `ItemDrawerView` (read-only display), and `DeleteItemDialog` (confirmation dialog) — `ItemDrawer.tsx` is now just the data-fetching/state shell; extracted the CodeEditor/MarkdownEditor/Textarea chooser (previously duplicated verbatim in `ItemDrawer.tsx` and `CreateItemDialog.tsx`) into a shared `ItemContentField` component backed by one `src/lib/item-type-kinds.ts` (`CONTENT_TYPES`/`LANGUAGE_TYPES`/`MARKDOWN_TYPES`/`FILE_TYPES`); added `src/lib/format.ts` (`formatDate`) shared by the new view/edit-form components; consolidated the Prisma `include` shape (`itemType`/`tags`/`collections`) repeated across `getItemById`/`createItem`/`updateItem` in `src/lib/db/items.ts` into `ITEM_DETAIL_INCLUDE`. Pure refactor, no behavior change — `Sidebar.tsx` deliberately left untouched.
+- Collection Create: wired up the write path behind the "New Collection" dialog (src/components/dashboard/NewCollectionDialog.tsx), which already existed in the top bar as a UI-only stub with a TODO. Follows the same pattern as item creation — new `createCollection` server action (src/actions/collections.ts, auth-checked, Zod-validated via `createCollectionSchema` in src/lib/validations/collections.ts) backed by a new `createCollection` query function (src/lib/db/collections.ts, scoped by `userId`, returns a fresh zero-stats `CollectionWithStats`); dialog shows a success/failure toast and calls `router.refresh()` so dashboard stats, the sidebar's recent collections, and the collections grid all pick up the new collection without a manual reload. Unit tests for `createCollection` in src/lib/db/collections.test.ts; the action and schema themselves are untested, matching the existing untested-thin-wrapper convention from items.ts/auth.ts and the untested-trivial-schema convention from `updateItemSchema`.
