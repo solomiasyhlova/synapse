@@ -1,8 +1,10 @@
 "use client";
 
 import { useId, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { FolderPlus } from "lucide-react";
 
+import { createCollection } from "@/actions/collections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,15 +17,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 export function NewCollectionDialog() {
   const nameId = useId();
   const descriptionId = useId();
+  const router = useRouter();
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -33,10 +38,24 @@ export function NewCollectionDialog() {
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // TODO: wire up to a server action once collections have a write path.
-    handleOpenChange(false);
+    setIsCreating(true);
+
+    const result = await createCollection({
+      name,
+      description: description.trim() ? description : null,
+    });
+
+    setIsCreating(false);
+
+    if (result.success) {
+      toastManager.add({ title: "Collection created" });
+      handleOpenChange(false);
+      router.refresh();
+    } else {
+      toastManager.add({ title: "Failed to create collection", description: result.error });
+    }
   }
 
   return (
@@ -90,8 +109,8 @@ export function NewCollectionDialog() {
             <DialogClose render={<Button type="button" variant="ghost" />}>
               Cancel
             </DialogClose>
-            <Button type="submit" disabled={!name.trim()}>
-              Create collection
+            <Button type="submit" disabled={!name.trim() || isCreating}>
+              {isCreating ? "Creating..." : "Create collection"}
             </Button>
           </DialogFooter>
         </form>

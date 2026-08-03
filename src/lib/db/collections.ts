@@ -71,6 +71,29 @@ export async function getRecentCollections(
   return collections.map(toCollectionWithStats);
 }
 
+export async function createCollection(
+  userId: string,
+  data: { name: string; description?: string | null },
+): Promise<CollectionWithStats> {
+  const collection = await prisma.collection.create({
+    data: {
+      userId,
+      name: data.name,
+      description: data.description ?? null,
+    },
+  });
+
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    itemCount: 0,
+    accentColor: null,
+    types: [],
+  };
+}
+
 export async function getFavoriteCollections(userId: string): Promise<CollectionWithStats[]> {
   const collections = await prisma.collection.findMany({
     where: { userId, isFavorite: true },

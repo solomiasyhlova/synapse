@@ -1,14 +1,25 @@
-# Current Feature
+# Current Feature: Collection Create
 
 ## Status
 
+In Progress
+
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- "New Collection" button in the top bar opens a create modal
+- Modal has fields: name (required) and description (optional)
+- Creating a collection follows the same patterns as item creation:
+  - Collections are user-scoped (owned by the authenticated user)
+  - Server components fetch collections via `lib/db` functions
+  - Client-side mutation goes through a server action (matching `createItem`'s pattern), not a hand-rolled API route, unless a client component needs to call it outside a form/action context
+- Show a success or failure toast on submit
+- On success, the UI updates to reflect the new collection immediately (list/grid + any place collection counts/names are shown) without a manual refresh
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Follow the existing `CreateItemDialog` / `createItem` action pattern: Zod-validated schema, `auth()`-checked, ownership implied by `userId`.
+- `Collection` model already exists in Prisma schema (`name`, `description`, `isFavorite`, `defaultTypeId`, `userId`) — no migration expected unless a gap is found.
+- Match toast + `router.refresh()` (or equivalent) convention used elsewhere for create/update/delete flows.
 
 ## History
 
