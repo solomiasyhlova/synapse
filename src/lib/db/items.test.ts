@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 const findFirst = vi.fn();
+const findMany = vi.fn();
 const create = vi.fn();
 const update = vi.fn();
 const deleteFn = vi.fn();
@@ -9,13 +10,13 @@ const collectionFindMany = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    item: { findFirst, create, update, delete: deleteFn },
+    item: { findFirst, findMany, create, update, delete: deleteFn },
     itemType: { findFirst: itemTypeFindFirst },
     collection: { findMany: collectionFindMany },
   },
 }));
 
-const { createItem, deleteItem, getItemById, updateItem } = await import("./items");
+const { createItem, deleteItem, getItemById, getSearchableItems, updateItem } = await import("./items");
 
 describe("getItemById", () => {
   it("returns null when the item isn't found or isn't owned by the user", async () => {
@@ -375,6 +376,61 @@ describe("updateItem", () => {
       }),
     );
     expect(result?.collections).toEqual([{ id: "col-2", name: "Hooks" }]);
+  });
+});
+
+describe("getSearchableItems", () => {
+  const itemType = { id: "type-1", name: "snippet", icon: "Code", color: "#3b82f6" };
+
+  it("prefers content for the preview when present", async () => {
+    findMany.mockResolvedValueOnce([
+      {
+        id: "item-1",
+        title: "useAuth Hook",
+        content: "export function useAuth() {}",
+        description: "A hook",
+        url: null,
+        itemType,
+      },
+    ]);
+
+    const result = await getSearchableItems("user-1");
+
+    expect(result).toEqual([
+      {
+        id: "item-1",
+        title: "useAuth Hook",
+        contentPreview: "export function useAuth() {}",
+        itemType,
+      },
+    ]);
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: "user-1" } }));
+  });
+
+  it("falls back to description, then url, when content is missing", async () => {
+    findMany.mockResolvedValueOnce([
+      { id: "item-1", title: "Docs", content: null, description: "Great docs", url: null, itemType },
+      { id: "item-2", title: "Repo", content: null, description: null, url: "https://example.com", itemType },
+      { id: "item-3", title: "Empty", content: null, description: null, url: null, itemType },
+    ]);
+
+    const result = await getSearchableItems("user-1");
+
+    expect(result.map((item) => item.contentPreview)).toEqual([
+      "Great docs",
+      "https://example.com",
+      null,
+    ]);
+  });
+
+  it("truncates long content previews to 140 characters", async () => {
+    findMany.mockResolvedValueOnce([
+      { id: "item-1", title: "Long", content: "a".repeat(200), description: null, url: null, itemType },
+    ]);
+
+    const result = await getSearchableItems("user-1");
+
+    expect(result[0].contentPreview).toHaveLength(140);
   });
 });
 

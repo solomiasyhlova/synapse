@@ -243,6 +243,37 @@ export async function deleteItem(userId: string, id: string): Promise<DeletedIte
   return existing;
 }
 
+const SEARCH_PREVIEW_LENGTH = 140;
+
+export interface SearchableItem {
+  id: string;
+  title: string;
+  contentPreview: string | null;
+  itemType: ItemType;
+}
+
+export async function getSearchableItems(userId: string): Promise<SearchableItem[]> {
+  const items = await prisma.item.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      description: true,
+      url: true,
+      itemType: { select: { id: true, name: true, icon: true, color: true } },
+    },
+  });
+
+  return items.map((item) => ({
+    id: item.id,
+    title: item.title,
+    contentPreview: (item.content ?? item.description ?? item.url)?.slice(0, SEARCH_PREVIEW_LENGTH) ?? null,
+    itemType: item.itemType,
+  }));
+}
+
 const SYSTEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];
 
 export async function getSystemItemTypes(userId: string): Promise<ItemTypeWithCount[]> {
