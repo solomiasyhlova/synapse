@@ -63,6 +63,17 @@ export async function getItemsByType(userId: string, typeName: string): Promise<
   });
 }
 
+export async function getItemsByCollection(
+  userId: string,
+  collectionId: string,
+): Promise<ItemWithType[]> {
+  return prisma.item.findMany({
+    where: { userId, collections: { some: { collectionId } } },
+    orderBy: { updatedAt: "desc" },
+    include: { itemType: true },
+  });
+}
+
 export interface ItemDetail extends ItemWithType {
   contentType: ContentType;
   content: string | null;

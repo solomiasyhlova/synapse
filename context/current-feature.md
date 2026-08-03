@@ -1,14 +1,23 @@
-# Current Feature
+# Current Feature: Collections Pages
 
 ## Status
 
+Complete
+
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- `/collections` page lists all of the user's collections (reuse `CollectionCard`)
+- `/collections/[id]` page shows the items belonging to that collection (reuse existing item card components)
+- Sidebar's "View all collections" link and every `CollectionCard` link point at these pages (already do — pages just don't exist yet)
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- `Sidebar.tsx:216-222` "View all collections" already links to `/collections`; `CollectionCard.tsx:11` already wraps each card in a `Link` to `/collections/${collection.id}`. No link changes needed — just build the destination pages.
+- No route exists yet under `src/app/**/collections` — both pages are new.
+- `/collections`: reuse `CollectionCard` (src/components/dashboard/CollectionCard.tsx) in a grid, same pattern as `CollectionsSection.tsx`'s "recent" grid but for the full list. Backing query: `getAllCollections` (src/lib/db/collections.ts) currently only returns `{ id, name }` — will likely need the full `CollectionWithStats` shape (like `getRecentCollections`/`getFavoriteCollections`) to render `CollectionCard` correctly, so may need a new or adjusted query function.
+- `/collections/[id]`: needs a new query to fetch a single collection (ownership-checked) plus its items (via `ItemCollection`), and should reuse the existing item display components — `ItemCard`/`ItemRow`, `ImageCard` (image type), `FileListRow` (file type) — following the same per-type-swap pattern already used in `/items/[type]/page.tsx`.
+- Both pages should sit in the `(app)` route group so they share the existing sidebar/topbar layout (same pattern as `/items/[type]`).
+- Item click should still open the shared `ItemDrawer` via the existing `item-drawer-context`.
 
 ## History
 
