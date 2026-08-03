@@ -140,6 +140,29 @@ export async function createCollection(
   };
 }
 
+export async function updateCollection(
+  userId: string,
+  id: string,
+  data: { name: string; description?: string | null },
+): Promise<CollectionDetail | null> {
+  const owned = await prisma.collection.findFirst({ where: { id, userId }, select: { id: true } });
+  if (!owned) return null;
+
+  return prisma.collection.update({
+    where: { id },
+    data: {
+      name: data.name,
+      description: data.description ?? null,
+    },
+    select: { id: true, name: true, description: true, isFavorite: true },
+  });
+}
+
+export async function deleteCollection(userId: string, id: string): Promise<boolean> {
+  const { count } = await prisma.collection.deleteMany({ where: { id, userId } });
+  return count > 0;
+}
+
 export async function getFavoriteCollections(userId: string): Promise<CollectionWithStats[]> {
   const collections = await prisma.collection.findMany({
     where: { userId, isFavorite: true },

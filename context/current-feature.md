@@ -1,14 +1,28 @@
-# Current Feature
+# Current Feature: Collection Edit/Delete/Favorite Actions
 
 ## Status
 
+In Progress
+
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- `/collections/[id]` page header gains Edit, Delete, and Favorite buttons/icons.
+  - Favorite is UI-only for now (icon/button renders, not wired to a mutation).
+  - Edit opens a modal to edit collection metadata (name, description — same fields as create).
+  - Delete opens a confirmation dialog before deleting.
+  - Deleting a collection must NOT delete its items — items just lose that collection membership (remove `ItemCollection` join rows only, `Item` rows untouched).
+- `CollectionCard` (used on `/collections` and the dashboard) gains a 3-dot menu with Edit, Delete, Favorite entries.
+  - Clicking the 3-dot icon opens the dropdown instead of navigating.
+  - Clicking anywhere else on the card still navigates to `/collections/[id]`.
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- `CollectionCard.tsx` (src/components/dashboard/CollectionCard.tsx) currently wraps the whole `Card` in a `<Link>` — needs restructuring so the 3-dot trigger doesn't also navigate (e.g. drop the outer `Link`, make the card body itself navigate via `onClick`/router push or a stopPropagation'd inner link, while the dropdown trigger stops propagation).
+- `/collections/[id]/page.tsx` (src/app/(app)/collections/[id]/page.tsx) is currently a plain Server Component with a static header — the new buttons need a client component for the modal/dropdown/confirmation state, similar to how `ItemDrawerActions`/`DeleteItemDialog` split things in the items feature.
+- Favorite: `Collection.isFavorite` already exists in the schema and `CollectionCard` already renders a filled star when true — this feature only adds the button/icon affordance, not the toggle mutation.
+- Edit modal: reuse the same name/description fields as `NewCollectionDialog.tsx` (src/components/dashboard/NewCollectionDialog.tsx) and `createCollectionSchema` (src/lib/validations/collections.ts) — likely need an `updateCollection` schema/action/query following the same auth-checked + ownership-checked pattern as `updateItem`.
+- Delete: needs a new `deleteCollection` server action + query (src/actions/collections.ts, src/lib/db/collections.ts) that deletes the `Collection` row — `ItemCollection` rows cascade via the existing `onDelete: Cascade` on that relation, and `Item` rows are untouched since `Item` doesn't cascade from `Collection`. Confirmation dialog should follow the existing `DeleteItemDialog`/`DeleteAccountDialog` pattern.
+- Both the `/collections/[id]` header actions and the `CollectionCard` dropdown need edit/delete/favorite affordances — consider whether the modal/dialog components can be shared between both entry points rather than duplicated.
 
 ## History
 

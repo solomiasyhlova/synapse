@@ -3,13 +3,17 @@
 import { ZodError } from "zod";
 
 import { auth } from "@/auth";
-import { createCollection as createCollectionQuery } from "@/lib/db/collections";
-import type { CollectionWithStats } from "@/lib/db/collections";
-import { createCollectionSchema } from "@/lib/validations/collections";
+import {
+  createCollection as createCollectionQuery,
+  deleteCollection as deleteCollectionQuery,
+  updateCollection as updateCollectionQuery,
+} from "@/lib/db/collections";
+import type { CollectionDetail, CollectionWithStats } from "@/lib/db/collections";
+import { createCollectionSchema, updateCollectionSchema } from "@/lib/validations/collections";
 
-interface ActionResult {
+interface ActionResult<T = CollectionWithStats> {
   success: boolean;
-  data?: CollectionWithStats;
+  data?: T;
   error?: string;
 }
 
@@ -28,6 +32,44 @@ export async function createCollection(data: unknown): Promise<ActionResult> {
       return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
     }
     console.error("Failed to create collection:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function updateCollection(
+  id: string,
+  data: unknown,
+): Promise<ActionResult<CollectionDetail>> {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Not signed in" };
+
+    const validData = await updateCollectionSchema.parseAsync(data);
+
+    const updated = await updateCollectionQuery(session.user.id, id, validData);
+    if (!updated) return { success: false, error: "Collection not found" };
+
+    return { success: true, data: updated };
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
+    }
+    console.error("Failed to update collection:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function deleteCollection(id: string): Promise<ActionResult<never>> {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Not signed in" };
+
+    const deleted = await deleteCollectionQuery(session.user.id, id);
+    if (!deleted) return { success: false, error: "Collection not found" };
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete collection:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }
