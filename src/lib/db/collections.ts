@@ -1,7 +1,7 @@
 import type { Prisma } from "@/generated/prisma/client";
+import { COLLECTIONS_PER_PAGE, DASHBOARD_COLLECTIONS_LIMIT } from "@/lib/constants";
+import { paginationSkip, toPaginatedResult, type PaginatedResult } from "@/lib/pagination";
 import { prisma } from "@/lib/prisma";
-
-const RECENT_COLLECTIONS_LIMIT = 6;
 
 export interface CollectionItemType {
   id: string;
@@ -53,7 +53,7 @@ function toCollectionWithStats(collection: CollectionWithItemTypes): CollectionW
 
 export async function getRecentCollections(
   userId: string,
-  limit = RECENT_COLLECTIONS_LIMIT,
+  limit = DASHBOARD_COLLECTIONS_LIMIT,
 ): Promise<CollectionWithStats[]> {
   const collections = await prisma.collection.findMany({
     where: { userId },
@@ -84,10 +84,14 @@ export async function getAllCollections(userId: string): Promise<CollectionOptio
   });
 }
 
-export async function getAllCollectionsWithStats(userId: string): Promise<CollectionWithStats[]> {
+async function fetchCollectionsWithStats(
+  userId: string,
+  options: { skip?: number; take?: number } = {},
+): Promise<CollectionWithStats[]> {
   const collections = await prisma.collection.findMany({
     where: { userId },
     orderBy: { name: "asc" },
+    ...options,
     include: {
       items: {
         include: {
@@ -98,6 +102,26 @@ export async function getAllCollectionsWithStats(userId: string): Promise<Collec
   });
 
   return collections.map(toCollectionWithStats);
+}
+
+export async function getAllCollectionsWithStats(
+  userId: string,
+  page = 1,
+): Promise<PaginatedResult<CollectionWithStats>> {
+  const [collections, totalCount] = await Promise.all([
+    fetchCollectionsWithStats(userId, {
+      skip: paginationSkip(page, COLLECTIONS_PER_PAGE),
+      take: COLLECTIONS_PER_PAGE,
+    }),
+    prisma.collection.count({ where: { userId } }),
+  ]);
+
+  return toPaginatedResult(collections, totalCount, page, COLLECTIONS_PER_PAGE);
+}
+
+/** Unpaginated, for client-side search (mirrors getSearchableItems). */
+export async function getSearchableCollections(userId: string): Promise<CollectionWithStats[]> {
+  return fetchCollectionsWithStats(userId);
 }
 
 export interface CollectionDetail {

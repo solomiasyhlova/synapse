@@ -12,9 +12,9 @@ import { SidebarProvider } from "@/components/dashboard/sidebar-context";
 import { TopBar } from "@/components/dashboard/TopBar";
 import {
   getAllCollections,
-  getAllCollectionsWithStats,
   getFavoriteCollections,
   getRecentCollections,
+  getSearchableCollections,
 } from "@/lib/db/collections";
 import { getSearchableItems, getSystemItemTypes } from "@/lib/db/items";
 
@@ -33,7 +33,7 @@ export default async function DashboardLayout({
       getRecentCollections(session.user.id, 5),
       getAllCollections(session.user.id),
       getSearchableItems(session.user.id),
-      getAllCollectionsWithStats(session.user.id),
+      getSearchableCollections(session.user.id),
     ]);
 
   const user = {

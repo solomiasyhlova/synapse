@@ -5,15 +5,20 @@ import { CollectionPageActions } from "@/components/dashboard/CollectionPageActi
 import { FileListRow } from "@/components/dashboard/FileListRow";
 import { ImageCard } from "@/components/dashboard/ImageCard";
 import { ItemCard } from "@/components/dashboard/ItemCard";
+import { Pagination } from "@/components/dashboard/Pagination";
 import { getCollectionById } from "@/lib/db/collections";
 import { getItemsByCollection } from "@/lib/db/items";
 
 export default async function CollectionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { id } = await params;
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(Number(pageParam) || 1, 1);
 
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
@@ -23,7 +28,7 @@ export default async function CollectionPage({
   const collection = await getCollectionById(userId, id);
   if (!collection) notFound();
 
-  const items = await getItemsByCollection(userId, id);
+  const { items, totalCount, totalPages } = await getItemsByCollection(userId, id, page);
   const fileItems = items.filter((item) => item.itemType.name === "file");
   const otherItems = items.filter((item) => item.itemType.name !== "file");
 
@@ -36,14 +41,16 @@ export default async function CollectionPage({
             <p className="text-sm text-muted-foreground">{collection.description}</p>
           )}
           <p className="text-sm text-muted-foreground">
-            {items.length} {items.length === 1 ? "item" : "items"}
+            {totalCount} {totalCount === 1 ? "item" : "items"}
           </p>
         </div>
         <CollectionPageActions collection={collection} />
       </div>
 
-      {items.length === 0 ? (
+      {totalCount === 0 ? (
         <p className="text-sm text-muted-foreground">No items in this collection yet.</p>
+      ) : items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No items on this page.</p>
       ) : (
         <div className="space-y-6">
           {otherItems.length > 0 && (
@@ -66,6 +73,8 @@ export default async function CollectionPage({
           )}
         </div>
       )}
+
+      <Pagination currentPage={page} totalPages={totalPages} basePath={`/collections/${id}`} />
     </main>
   );
 }

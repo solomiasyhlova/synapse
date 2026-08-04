@@ -1,16 +1,21 @@
-# Current Feature
+# Current Feature: Pagination
 
 ## Status
 
-<!-- Not Started | In Progress | Complete -->
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Add pagination to /items/[type] page
+- Add pagination to /collections/[id] page
+- Pagination controls at bottom with numbered page links and prev/next
+- Prev/next controls are disabled (greyed out) when not available
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Constants: `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`
+- Dashboard limits: `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10`
+- Must not fetch all resources at once — only fetch the amount a given page requires (paginated DB queries, not fetch-then-slice)
 
 ## History
 

@@ -7,6 +7,7 @@ import { CreateItemDialog } from "@/components/dashboard/CreateItemDialog";
 import { FileListRow } from "@/components/dashboard/FileListRow";
 import { ImageCard } from "@/components/dashboard/ImageCard";
 import { ItemCard } from "@/components/dashboard/ItemCard";
+import { Pagination } from "@/components/dashboard/Pagination";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { getAllCollections } from "@/lib/db/collections";
 import { getItemsByType, getItemTypeByName, getSystemItemTypes } from "@/lib/db/items";
@@ -14,10 +15,14 @@ import { slugToTypeName } from "@/lib/item-type-slug";
 
 export default async function ItemsByTypePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ type: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { type: slug } = await params;
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(Number(pageParam) || 1, 1);
 
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
@@ -28,8 +33,8 @@ export default async function ItemsByTypePage({
   const itemType = await getItemTypeByName(userId, typeName);
   if (!itemType) notFound();
 
-  const [items, itemTypes, collections] = await Promise.all([
-    getItemsByType(userId, typeName),
+  const [{ items, totalCount, totalPages }, itemTypes, collections] = await Promise.all([
+    getItemsByType(userId, typeName, page),
     getSystemItemTypes(userId),
     getAllCollections(userId),
   ]);
@@ -43,7 +48,7 @@ export default async function ItemsByTypePage({
         <div>
           <h1 className="text-2xl font-bold capitalize">{slug}</h1>
           <p className="text-sm text-muted-foreground">
-            {items.length} {items.length === 1 ? "item" : "items"}
+            {totalCount} {totalCount === 1 ? "item" : "items"}
           </p>
         </div>
         <CreateItemDialog
@@ -59,8 +64,10 @@ export default async function ItemsByTypePage({
         />
       </div>
 
-      {items.length === 0 ? (
+      {totalCount === 0 ? (
         <p className="text-sm text-muted-foreground">No items yet.</p>
+      ) : items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No items on this page.</p>
       ) : typeName === "file" ? (
         <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
           {items.map((item) => (
@@ -78,6 +85,8 @@ export default async function ItemsByTypePage({
           )}
         </div>
       )}
+
+      <Pagination currentPage={page} totalPages={totalPages} basePath={`/items/${slug}`} />
     </main>
   );
 }

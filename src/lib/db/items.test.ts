@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const findFirst = vi.fn();
 const findMany = vi.fn();
+const count = vi.fn();
 const create = vi.fn();
 const update = vi.fn();
 const deleteFn = vi.fn();
@@ -10,13 +11,21 @@ const collectionFindMany = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    item: { findFirst, findMany, create, update, delete: deleteFn },
+    item: { findFirst, findMany, count, create, update, delete: deleteFn },
     itemType: { findFirst: itemTypeFindFirst },
     collection: { findMany: collectionFindMany },
   },
 }));
 
-const { createItem, deleteItem, getItemById, getSearchableItems, updateItem } = await import("./items");
+const {
+  createItem,
+  deleteItem,
+  getItemById,
+  getItemsByCollection,
+  getItemsByType,
+  getSearchableItems,
+  updateItem,
+} = await import("./items");
 
 describe("getItemById", () => {
   it("returns null when the item isn't found or isn't owned by the user", async () => {
@@ -61,6 +70,62 @@ describe("getItemById", () => {
       { id: "col-2", name: "Hooks" },
     ]);
     expect(result?.tags).toEqual([{ id: "tag-1", name: "react" }]);
+  });
+});
+
+describe("getItemsByType", () => {
+  it("fetches only the requested page's worth of items, scoped to the type", async () => {
+    findMany.mockResolvedValueOnce([{ id: "item-1" }]);
+    count.mockResolvedValueOnce(43);
+
+    const result = await getItemsByType("user-1", "snippet", 2);
+
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", itemType: { name: "snippet" } },
+        skip: 21,
+        take: 21,
+      }),
+    );
+    expect(count).toHaveBeenCalledWith({
+      where: { userId: "user-1", itemType: { name: "snippet" } },
+    });
+    expect(result).toEqual({
+      items: [{ id: "item-1" }],
+      page: 2,
+      totalPages: 3,
+      totalCount: 43,
+    });
+  });
+
+  it("defaults to page 1", async () => {
+    findMany.mockResolvedValueOnce([]);
+    count.mockResolvedValueOnce(0);
+
+    const result = await getItemsByType("user-1", "snippet");
+
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ skip: 0, take: 21 }));
+    expect(result.page).toBe(1);
+    expect(result.totalPages).toBe(1);
+  });
+});
+
+describe("getItemsByCollection", () => {
+  it("fetches only the requested page's worth of items in the collection", async () => {
+    findMany.mockResolvedValueOnce([{ id: "item-1" }]);
+    count.mockResolvedValueOnce(5);
+
+    const result = await getItemsByCollection("user-1", "col-1", 1);
+
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", collections: { some: { collectionId: "col-1" } } },
+        skip: 0,
+        take: 21,
+      }),
+    );
+    expect(result.totalCount).toBe(5);
+    expect(result.totalPages).toBe(1);
   });
 });
 
