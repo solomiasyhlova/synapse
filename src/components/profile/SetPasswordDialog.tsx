@@ -3,7 +3,7 @@
 import { Key } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
-import { changePassword } from "@/actions/profile";
+import { setPassword } from "@/actions/profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { toastManager } from "@/lib/toast";
 
-export function ChangePasswordDialog() {
+export function SetPasswordDialog() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -33,19 +33,18 @@ export function ChangePasswordDialog() {
     setError(null);
 
     const formData = new FormData(event.currentTarget);
-    const currentPassword = String(formData.get("currentPassword") ?? "");
     const newPassword = String(formData.get("newPassword") ?? "");
     const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
     setIsPending(true);
     try {
-      const result = await changePassword(currentPassword, newPassword, confirmPassword);
+      const result = await setPassword(newPassword, confirmPassword);
       if (!result.success) {
         setError(result.error ?? "Something went wrong. Please try again.");
         return;
       }
 
-      toastManager.add({ title: "Password changed" });
+      toastManager.add({ title: "Password set" });
       handleOpenChange(false);
     } finally {
       setIsPending(false);
@@ -58,29 +57,18 @@ export function ChangePasswordDialog() {
         render={
           <Button variant="outline">
             <Key className="size-4" />
-            Change password
+            Set password
           </Button>
         }
       />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Change password</DialogTitle>
-          <DialogDescription>Enter your current password and a new one.</DialogDescription>
+          <DialogTitle>Set password</DialogTitle>
+          <DialogDescription>
+            Add a password to your account so you can also sign in with your email.
+          </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div className="space-y-1">
-            <label htmlFor="currentPassword" className="text-sm font-medium">
-              Current password
-            </label>
-            <Input
-              id="currentPassword"
-              name="currentPassword"
-              type="password"
-              autoComplete="current-password"
-              required
-              autoFocus
-            />
-          </div>
           <div className="space-y-1">
             <label htmlFor="newPassword" className="text-sm font-medium">
               New password
@@ -92,11 +80,12 @@ export function ChangePasswordDialog() {
               autoComplete="new-password"
               placeholder="At least 8 characters"
               required
+              autoFocus
             />
           </div>
           <div className="space-y-1">
             <label htmlFor="confirmPassword" className="text-sm font-medium">
-              Confirm new password
+              Confirm password
             </label>
             <Input
               id="confirmPassword"

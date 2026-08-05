@@ -6,6 +6,7 @@ import { UserAvatar } from "@/components/dashboard/UserAvatar";
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 import { ProfileStats } from "@/components/profile/ProfileStats";
+import { SetPasswordDialog } from "@/components/profile/SetPasswordDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getProfileUser } from "@/lib/db/profile";
 
@@ -47,7 +48,7 @@ export default async function ProfilePage() {
             <CardTitle className="text-base">Account</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
-            {user.hasPassword && <ChangePasswordDialog />}
+            {user.hasPassword ? <ChangePasswordDialog /> : <SetPasswordDialog />}
             <DeleteAccountDialog />
           </CardContent>
         </Card>

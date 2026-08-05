@@ -1,16 +1,21 @@
-# Current Feature
+# Current Feature: Set Password for OAuth-only Accounts
 
 ## Status
 
-<!-- Not Started | In Progress | Complete -->
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- On /profile, GitHub-only accounts (no passwordHash) see a "Set password" button next to Delete account, where ChangePasswordDialog would normally go
+- Set password flow only asks for new password + confirm (no current password field, since none exists)
+- New `setPassword` server action: auth-checked, rejects if the account already has a passwordHash (must use Change password instead), validates new+confirm via zod, hashes and saves passwordHash
+- Accounts that already have a password keep the existing ChangePasswordDialog unchanged
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Triggered by user @syhlova.solomia@gmail.com's own account, which is GitHub OAuth-only and currently has no way to add a password
+- Reuse existing patterns: src/components/profile/ChangePasswordDialog.tsx for dialog shape, src/actions/profile.ts for the action, changePasswordSchema in src/lib/validations/auth.ts as a sibling to add a new setPasswordSchema
+- profile/page.tsx currently does `{user.hasPassword && <ChangePasswordDialog />}` — needs an else-branch for SetPasswordDialog
 
 ## History
 

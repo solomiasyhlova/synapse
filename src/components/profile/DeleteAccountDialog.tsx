@@ -1,5 +1,6 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 
 import { deleteAccount } from "@/actions/profile";
@@ -40,7 +41,14 @@ export function DeleteAccountDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button variant="destructive">Delete account</Button>} />
+      <DialogTrigger
+        render={
+          <Button variant="destructive">
+            <Trash2 className="size-4" />
+            Delete account
+          </Button>
+        }
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete account</DialogTitle>

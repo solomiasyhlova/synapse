@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 
 import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { changePasswordSchema } from "@/lib/validations/auth";
+import { changePasswordSchema, setPasswordSchema } from "@/lib/validations/auth";
 
 interface ActionResult {
   success: boolean;
@@ -45,6 +45,37 @@ export async function changePassword(
       return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
     }
     console.error("Failed to change password:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function setPassword(
+  newPassword: string,
+  confirmPassword: string
+): Promise<ActionResult> {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Not signed in" };
+
+    const { newPassword: validNewPassword } = await setPasswordSchema.parseAsync({
+      newPassword,
+      confirmPassword,
+    });
+
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (user?.passwordHash) {
+      return { success: false, error: "This account already has a password" };
+    }
+
+    const passwordHash = await bcrypt.hash(validNewPassword, 10);
+    await prisma.user.update({ where: { id: session.user.id }, data: { passwordHash } });
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
+    }
+    console.error("Failed to set password:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }
