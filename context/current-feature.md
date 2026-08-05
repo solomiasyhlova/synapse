@@ -1,16 +1,23 @@
-# Current Feature
+# Current Feature: Settings Page
 
 ## Status
 
-<!-- Not Started | In Progress | Complete -->
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- New `/settings` page exists, protected (redirects unauthenticated users, same pattern as `/profile`)
+- Sidebar's user icon dropdown (`UserMenu.tsx`) gains a "Settings" link at the bottom, alongside the existing "Sign out" item
+- Account actions move from `/profile` to `/settings`:
+  - The password dialog (`ChangePasswordDialog` / `SetPasswordDialog`, swapped based on `user.hasPassword`)
+  - `DeleteAccountDialog`
+- `/profile` keeps the profile info card (avatar, name, email, member since) and `ProfileStats` — only the "Account" card's contents move out
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Spec says "forgot password" but there's no forgot-password UI on `/profile` today — the Account card currently holds the password dialog (Change/Set Password) and Delete Account. Treating "forgot password" as referring to that password dialog; flag with user if this is wrong.
+- `proxy.ts` protects `/dashboard`, `/items`, `/collections` — `/profile` itself is NOT currently in the protected matcher (page does its own `auth()` + `redirect("/sign-in")` check). Add `/settings` the same way `/profile` is currently handled, and check whether `/settings` should also be added to `proxy.ts`'s matcher for consistency.
+- Reuse the `/profile` page's structure/pattern (`auth()` check, `Card` layout) for `/settings`.
 
 ## History
 

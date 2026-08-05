@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Settings } from "lucide-react";
 
 import { signOutAction } from "@/actions/auth";
 import { UserAvatar } from "@/components/dashboard/UserAvatar";
@@ -51,6 +51,10 @@ export function UserMenu({ user, collapsed = false }: UserMenuProps) {
           <ChevronsUpDown className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="end">
+          <DropdownMenuItem render={<Link href="/settings" />}>
+            <Settings className="size-4" />
+            Settings
+          </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {

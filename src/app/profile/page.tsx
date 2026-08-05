@@ -3,10 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { UserAvatar } from "@/components/dashboard/UserAvatar";
-import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
-import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 import { ProfileStats } from "@/components/profile/ProfileStats";
-import { SetPasswordDialog } from "@/components/profile/SetPasswordDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getProfileUser } from "@/lib/db/profile";
 
@@ -42,16 +39,6 @@ export default async function ProfilePage() {
         </Card>
 
         <ProfileStats userId={user.id} />
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Account</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {user.hasPassword ? <ChangePasswordDialog /> : <SetPasswordDialog />}
-            <DeleteAccountDialog />
-          </CardContent>
-        </Card>
 
         <Link
           href="/dashboard"
