@@ -1,32 +1,16 @@
-# Current Feature: Homepage Mockup
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Static marketing homepage prototype for Synapse in `prototypes/homepage/` (`index.html`, `styles.css`, `script.js`)
-- Fixed top nav: logo, Features/Pricing links, Sign In/Get Started buttons, opacity increases on scroll
-- Hero text: "Stop Losing Your Developer Knowledge" gradient headline, subheadline, CTA buttons
-- Hero visual: chaos container (left) → pulsing arrow (center) → dashboard preview (right)
-  - Chaos container: "Your knowledge today..." box with 8 floating icons (Notion, GitHub, Slack, VS Code, browser tabs, terminal, text file, bookmark) that drift, bounce off walls, rotate/scale-pulse, and repel from the mouse cursor (requestAnimationFrame)
-  - Arrow: CSS pulse animation
-  - Dashboard preview: "...with Synapse" box with sidebar nav + grid of item cards with colored top borders
-- Features section: 6 cards (Code Snippets, AI Prompts, Instant Search, Commands, Files & Docs, Collections), each in its item type's accent color
-- AI section: two columns — left "Pro Feature" badge + AI capability checklist, right code editor mockup with "AI Generated Tags" demo
-- Pricing section: Free ($0, 50 items, 3 collections) vs Pro ($8/mo, unlimited, AI features, "Most Popular" badge) + monthly/yearly ($72/yr) toggle
-- CTA section: "Ready to Organize Your Knowledge?" with button
-- Footer: logo, link columns, copyright with current year
-- Scroll-triggered fade-in animations on elements
-- Responsive: chaos/arrow/dashboard stack vertically on mobile (single column grids), arrow rotates 90° to point down
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Dark theme. Item type accent colors (distinct from the main app's palette in context/project-overview.md — this spec defines its own):
-  - Snippet `#3b82f6` (Blue), Prompt `#f59e0b` (Amber), Command `#06b6d4` (Cyan), Note `#22c55e` (Green), File `#64748b` (Slate), Image `#ec4899` (Pink), URL `#6366f1` (Indigo)
-- This is a standalone static prototype (plain HTML/CSS/JS), not part of the Next.js app — lives under `prototypes/homepage/`
-- Full spec: context/features/homepage-mockup-spec.md
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -79,3 +63,4 @@ In Progress
 - Favorite Toggle Buttons on Cards: `ItemCard`, `ImageCard`, and `FileListRow` (previously showing only a static star indicator for `isFavorite`) each gained a clickable ghost icon-button that calls the existing `toggleItemFavorite` action with optimistic local state (flip immediately, revert + toast on failure) and `stopPropagation` so it doesn't also open the item drawer; `ImageCard`'s root element changed from a native `<button>` to `div[role=button]` since a native button can't contain the nested toggle button (same pattern `FileListRow` already used for its Download link). `CollectionCard.tsx`'s static star became a directly clickable toggle on the card header (calling the existing `toggleCollectionFavorite`), and the now-redundant "Favorite" entry was removed from its 3-dot dropdown menu. Bundled in the same branch: success toasts ("Added to favorites"/"Removed from favorites") added to every favorite toggle site, including the drawer (`ItemDrawer.tsx`) and collection detail page (`CollectionPageActions.tsx`), which previously only toasted on failure. No new server actions, schema, or tests — pure UI wiring onto the `toggleItemFavorite`/`toggleCollectionFavorite` actions built during the earlier Favorites Page feature.
 - Favorites Page Sorting: `FavoritesList.tsx` (src/components/dashboard/FavoritesList.tsx) gained independent per-section sort dropdowns — Name/Date/Type for Items, Name/Date for Collections (Type omitted there since every collection's type label is just "collection") — using the existing shadcn `Select` primitive, styled to match the page's monospace terminal look; sorting is pure client-side via `useMemo` (no server round-trip), Date sorts by `updatedAt` desc (the existing "favorited-at" proxy), Name/Type sort alphabetically via `localeCompare`. Passed `items={labels}` directly to the Base UI `Select` root so the trigger resolves the capitalized label ("Date"/"Name"/"Type") on first paint instead of briefly falling back to the raw lowercase sort key before the popup's items register. No new server actions, schema, or tests — pure client-side UI logic on data the page already fetches.
 - Pinned Items: the previously inert Pin button in `ItemDrawerActions.tsx` is now wired up, following the same pattern as the earlier Favorite feature — new `toggleItemPin` query fn (src/lib/db/items.ts) and server action (src/actions/items.ts), mirroring `toggleItemFavorite` exactly (flip-and-return, ownership-checked); `ItemDrawer.tsx` gained a `handleTogglePin` handler with a success/failure toast and `router.refresh()`. `getItemsByType`/`getItemsByCollection` (src/lib/db/items.ts) now `orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }]` so pinned items float to the top of `/items/[type]` and `/collections/[id]` listings; the dashboard's pinned section already read `isPinned` via the existing `getPinnedItems`, so it needed no changes. Items only, per spec — `ItemCard`'s pin icon stays a static indicator, not made clickable. Unit tests added for `toggleItemPin` (both flip directions, not-found case) and the updated `orderBy` in `getItemsByType`/`getItemsByCollection` (src/lib/db/items.test.ts). Known pre-existing issue (not introduced by this branch, left alone as out of scope): `npm run lint` still reports the `react-hooks/set-state-in-effect` error in `ItemDrawer.tsx`'s item-fetch effect, first flagged during the Favorites Page feature.
+- Homepage Mockup: standalone static marketing prototype at `prototypes/homepage/` (`index.html`/`styles.css`/`script.js`, plain HTML/CSS/JS — not part of the Next.js app, per spec in context/features/homepage-mockup-spec.md), built from user-provided spec via `/feature load`. Hero "chaos → order" visual: 8 hand-crafted SVG icons (Notion, GitHub, Slack, VS Code, browser tabs, terminal, text file, bookmark) animated with a custom requestAnimationFrame physics loop (wall-bounce, mouse-repel, rotation/scale pulsing) inside `.chaos-container`, a CSS-pulsed arrow, and a `.dashboard-preview` mini-mockup with a search bar + add button and 6 item cards (type-colored icon + skeleton title/subtitle lines, added after user feedback that the initial empty-bordered-box version looked too sparse). Features/AI/Pricing/CTA/Footer sections match spec; pricing has a working monthly/yearly (`$8` ↔ `$6`, "Save 25%") toggle via `data-monthly`/`data-yearly` attributes. `IntersectionObserver`-driven scroll fade-ins and scroll-based navbar opacity implemented in `script.js`. Mobile: chaos/arrow/dashboard stack vertically with the arrow rotated 90°, and a previously-decorative-only hamburger button was wired up into a working nav dropdown (`.navbar.nav-open`) since a dead toggle would've been a worse regression than not adding one. Browser-verified with Playwright at desktop/mobile viewports (including scripted incremental-scroll to trigger the fade-in observer for full-page screenshots, since a single jump-to-bottom scroll doesn't fire it). Added `.playwright-mcp` to `.gitignore` (verification-tool debug output, wasn't previously excluded). Explicitly declined in this pass: swapping the main Next.js app's global font (currently Geist Mono everywhere) to match the homepage's system-sans stack — user deferred it for later.
