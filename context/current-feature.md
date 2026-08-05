@@ -1,16 +1,22 @@
-# Current Feature
+# Current Feature: Favorites Page Sorting
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Add client-side sorting controls to `/favorites`
+- Support sorting by: name (alphabetical), date (most recently favorited), and item type
+- Sorting applies without a server round-trip (re-sort already-fetched data in the browser)
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Existing page: `src/app/(app)/favorites/page.tsx` fetches `getFavoriteItems` + `getFavoriteCollections`, renders `FavoritesList.tsx` (src/components/dashboard/FavoritesList.tsx), which is currently a server-sorted (`updatedAt` desc), divide-y list split into two sections: "Items" and "Collections" — no sort UI exists yet.
+- `FavoritesList` is already `"use client"`, so sort state can live there directly.
+- "Date" likely means `updatedAt`, which is already the app's existing proxy for "most recently favorited" (no dedicated `favoritedAt` column — see History entry for the original Favorites Page feature).
+- "Item type" sort is straightforward for the Items section (sort by `item.itemType.name`). For the Collections section every row's type is just "collection" (no per-collection type), so decide during implementation whether the type sort option is hidden/disabled for that section or just falls back to name.
+- Open question for `start`: one shared sort control for both sections, or independent controls per section?
 
 ## History
 
