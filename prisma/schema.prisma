@@ -17,6 +17,9 @@ model User {
   image         String?
   passwordHash  String?   // email/password credentials
 
+  // Preferences
+  editorPreferences Json? // EditorPreferences shape — see src/lib/editor-preferences.ts
+
   // Billing
   isPro                Boolean @default(false)
   stripeCustomerId     String? @unique

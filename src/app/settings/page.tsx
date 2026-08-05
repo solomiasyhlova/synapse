@@ -5,14 +5,19 @@ import { auth } from "@/auth";
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 import { SetPasswordDialog } from "@/components/profile/SetPasswordDialog";
+import { EditorPreferencesForm } from "@/components/settings/EditorPreferencesForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getProfileUser } from "@/lib/db/profile";
+import { getEditorPreferences } from "@/lib/db/settings";
 
 export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
 
-  const user = await getProfileUser(session.user.id);
+  const [user, editorPreferences] = await Promise.all([
+    getProfileUser(session.user.id),
+    getEditorPreferences(session.user.id),
+  ]);
   if (!user) notFound();
 
   return (
@@ -31,6 +36,15 @@ export default async function SettingsPage() {
           <CardContent className="flex flex-wrap gap-2">
             {user.hasPassword ? <ChangePasswordDialog /> : <SetPasswordDialog />}
             <DeleteAccountDialog />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Editor Preferences</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditorPreferencesForm initialPreferences={editorPreferences} />
           </CardContent>
         </Card>
 
