@@ -17,6 +17,7 @@ interface ItemDrawerActionsProps {
   onEdit: () => void;
   onDeleteRequest: () => void;
   onToggleFavorite: () => void;
+  onTogglePin: () => void;
 }
 
 export function ItemDrawerActions({
@@ -30,6 +31,7 @@ export function ItemDrawerActions({
   onEdit,
   onDeleteRequest,
   onToggleFavorite,
+  onTogglePin,
 }: ItemDrawerActionsProps) {
   if (isEditing) {
     return (
@@ -56,8 +58,14 @@ export function ItemDrawerActions({
         <Star className={cn("size-4", item?.isFavorite && "fill-yellow-400")} />
         Favorite
       </Button>
-      <Button variant="ghost" size="sm">
-        <Pin className="size-4" />
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn(item?.isPinned && "text-primary")}
+        onClick={onTogglePin}
+        disabled={!item}
+      >
+        <Pin className={cn("size-4", item?.isPinned && "fill-primary")} />
         Pin
       </Button>
       <Button variant="ghost" size="sm" onClick={onCopy} disabled={!item}>

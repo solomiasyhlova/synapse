@@ -73,7 +73,7 @@ export async function getItemsByType(
   const [items, totalCount] = await Promise.all([
     prisma.item.findMany({
       where,
-      orderBy: { updatedAt: "desc" },
+      orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
       skip: paginationSkip(page, ITEMS_PER_PAGE),
       take: ITEMS_PER_PAGE,
       include: { itemType: true },
@@ -94,7 +94,7 @@ export async function getItemsByCollection(
   const [items, totalCount] = await Promise.all([
     prisma.item.findMany({
       where,
-      orderBy: { updatedAt: "desc" },
+      orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
       skip: paginationSkip(page, ITEMS_PER_PAGE),
       take: ITEMS_PER_PAGE,
       include: { itemType: true },
@@ -268,6 +268,25 @@ export async function toggleItemFavorite(userId: string, id: string): Promise<It
   const item = await prisma.item.update({
     where: { id },
     data: { isFavorite: !existing.isFavorite },
+    include: ITEM_DETAIL_INCLUDE,
+  });
+
+  return {
+    ...item,
+    collections: item.collections.map(({ collection }) => collection),
+  };
+}
+
+export async function toggleItemPin(userId: string, id: string): Promise<ItemDetail | null> {
+  const existing = await prisma.item.findFirst({
+    where: { id, userId },
+    select: { isPinned: true },
+  });
+  if (!existing) return null;
+
+  const item = await prisma.item.update({
+    where: { id },
+    data: { isPinned: !existing.isPinned },
     include: ITEM_DETAIL_INCLUDE,
   });
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { deleteItem, toggleItemFavorite, updateItem } from "@/actions/items";
+import { deleteItem, toggleItemFavorite, toggleItemPin, updateItem } from "@/actions/items";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -122,6 +122,21 @@ export function ItemDrawer({ collections }: ItemDrawerProps) {
     }
   }
 
+  async function handleTogglePin() {
+    if (!item) return;
+
+    const wasPinned = item.isPinned;
+    const result = await toggleItemPin(item.id);
+
+    if (result.success && result.data) {
+      setItem(result.data);
+      toastManager.add({ title: wasPinned ? "Unpinned" : "Pinned" });
+      router.refresh();
+    } else {
+      toastManager.add({ title: "Failed to update pin", description: result.error });
+    }
+  }
+
   async function handleDelete() {
     if (!item) return;
 
@@ -192,6 +207,7 @@ export function ItemDrawer({ collections }: ItemDrawerProps) {
             onEdit={handleEdit}
             onDeleteRequest={() => setIsDeleteDialogOpen(true)}
             onToggleFavorite={() => void handleToggleFavorite()}
+            onTogglePin={() => void handleTogglePin()}
           />
         </div>
 

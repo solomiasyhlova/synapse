@@ -7,6 +7,7 @@ import {
   createItem as createItemQuery,
   deleteItem as deleteItemQuery,
   toggleItemFavorite as toggleItemFavoriteQuery,
+  toggleItemPin as toggleItemPinQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
 import type { ItemDetail } from "@/lib/db/items";
@@ -92,6 +93,23 @@ export async function toggleItemFavorite(itemId: string): Promise<ActionResult> 
     return { success: true, data: updated };
   } catch (error) {
     console.error("Failed to toggle item favorite:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function toggleItemPin(itemId: string): Promise<ActionResult> {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Not signed in" };
+
+    const updated = await toggleItemPinQuery(session.user.id, itemId);
+    if (!updated) {
+      return { success: false, error: "Item not found" };
+    }
+
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Failed to toggle item pin:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

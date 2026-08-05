@@ -26,6 +26,7 @@ const {
   getItemsByType,
   getSearchableItems,
   toggleItemFavorite,
+  toggleItemPin,
   updateItem,
 } = await import("./items");
 
@@ -85,6 +86,7 @@ describe("getItemsByType", () => {
     expect(findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: "user-1", itemType: { name: "snippet" } },
+        orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
         skip: 21,
         take: 21,
       }),
@@ -122,6 +124,7 @@ describe("getItemsByCollection", () => {
     expect(findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: "user-1", collections: { some: { collectionId: "col-1" } } },
+        orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
         skip: 0,
         take: 21,
       }),
@@ -585,6 +588,78 @@ describe("toggleItemFavorite", () => {
 
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: "item-1" }, data: { isFavorite: false } }),
+    );
+  });
+});
+
+describe("toggleItemPin", () => {
+  it("returns null when the item isn't found or isn't owned by the user", async () => {
+    findFirst.mockResolvedValueOnce(null);
+
+    const result = await toggleItemPin("user-1", "item-1");
+
+    expect(result).toBeNull();
+    expect(findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "item-1", userId: "user-1" } }),
+    );
+  });
+
+  it("flips isPinned from false to true", async () => {
+    findFirst.mockResolvedValueOnce({ isPinned: false });
+    update.mockResolvedValueOnce({
+      id: "item-1",
+      title: "useAuth Hook",
+      description: null,
+      isFavorite: false,
+      isPinned: true,
+      updatedAt: new Date("2024-01-16"),
+      createdAt: new Date("2024-01-15"),
+      contentType: "TEXT",
+      content: "export function useAuth() {}",
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: "typescript",
+      itemType: { id: "type-1", name: "snippet", icon: "Code", color: "#3b82f6" },
+      tags: [],
+      collections: [],
+    });
+
+    const result = await toggleItemPin("user-1", "item-1");
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "item-1" }, data: { isPinned: true } }),
+    );
+    expect(result?.isPinned).toBe(true);
+  });
+
+  it("flips isPinned from true to false", async () => {
+    findFirst.mockResolvedValueOnce({ isPinned: true });
+    update.mockResolvedValueOnce({
+      id: "item-1",
+      title: "useAuth Hook",
+      description: null,
+      isFavorite: false,
+      isPinned: false,
+      updatedAt: new Date("2024-01-16"),
+      createdAt: new Date("2024-01-15"),
+      contentType: "TEXT",
+      content: null,
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: null,
+      itemType: { id: "type-1", name: "snippet", icon: "Code", color: "#3b82f6" },
+      tags: [],
+      collections: [],
+    });
+
+    await toggleItemPin("user-1", "item-1");
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "item-1" }, data: { isPinned: false } }),
     );
   });
 });
