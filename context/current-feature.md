@@ -1,16 +1,34 @@
-# Current Feature
+# Current Feature: Real Homepage (from prototype)
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Replace `src/app/page.tsx`'s unconditional `redirect("/dashboard")` with the real marketing homepage; only redirect signed-in visitors (check `auth()`, same pattern as `(app)/layout.tsx`)
+- Port `prototypes/homepage/` (static HTML/CSS/JS mockup) into real Next.js components under `src/components/homepage/` — same content/sections, not a redesign
+- Preserve all interactivity from `script.js`: navbar scroll opacity + mobile menu, `FadeIn` scroll fade-ins, `ChaosVisual` icon physics (drift/bounce/mouse-repel/pulse via `requestAnimationFrame`), pricing monthly/yearly toggle (client-side, no server round-trip)
+- No changes to `/dashboard` or any authenticated `(app)` route
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Component breakdown (all new, under `src/components/homepage/`):
+  - `page.tsx` (Server) — composes sections, does the `auth()` redirect check
+  - `Navbar.tsx` (Client) — scroll-opacity + mobile menu state/effects
+  - `HeroSection.tsx` (Server) — headline/subhead/CTAs + dashboard-preview markup
+  - `ChaosVisual.tsx` (Client) — animated icon physics only
+  - `FeaturesSection.tsx` (Server), `AISection.tsx` (Server), `CTASection.tsx` (Server), `Footer.tsx` (Server, current year via `new Date().getFullYear()`) — static
+  - `PricingSection.tsx` (Server) wraps static cards; `PricingToggle.tsx` (Client) isolates monthly/yearly toggle state
+  - `FadeIn.tsx` (Client) — shared `IntersectionObserver` wrapper reused by each section
+- Use Tailwind v4 utilities + shadcn/ui primitives (`Button`, etc.), not the mockup's `styles.css`; any new theme tokens go in `globals.css`'s `@theme` (no `tailwind.config.*`)
+- Use the app's real global font already in `globals.css` (Geist Mono), not the mockup's system-sans stack
+- Item type colors/icons must match project-overview.md §6 exactly (e.g. Prompt `#8b5cf6`/`Sparkles`, Command `#f97316`/`Terminal`), not the mockup's drifted placeholder hex values — hardcode §6 values directly (public/unauthenticated page, no `ItemType` DB query) for both the features grid accents and dashboard-preview mini-card accents
+- Use `lucide-react` for feature/checkmark/UI icons instead of hand-written SVGs; chaos-container brand icons (Notion, GitHub, Slack, VS Code, browser tabs, terminal, text file, bookmark) stay as ported inline SVGs since lucide has no brand marks for those
+- Pricing/feature-limit copy must match project-overview.md §9 exactly (50 items / 3 collections free, $8/mo or $72/yr pro)
+- Link destinations: Navbar logo→`/`, Features/Pricing→`#features`/`#pricing`, Sign In→`/sign-in`, Get Started/Get Started Free/Start Free Trial→`/register` (no Stripe checkout flow yet, same destination as Free), Footer About/Blog/Privacy/Terms→plain non-clickable text (no pages exist, no dead `href="#"`)
+- Out of scope: `/dashboard`/authenticated routes, new About/Blog/Privacy/Terms pages, Stripe checkout wiring
+- References: `prototypes/homepage/` (index.html/styles.css/script.js, content/structure of record), context/project-overview.md §6 + §9, context/coding-standards.md
 
 ## History
 
