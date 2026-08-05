@@ -16,6 +16,7 @@ export interface CollectionWithStats {
   description: string | null;
   isFavorite: boolean;
   itemCount: number;
+  updatedAt: Date;
   /** Color of the most-used content type in this collection, for the card's border accent. */
   accentColor: string | null;
   /** Distinct item types present in this collection, for the small icon row. */
@@ -46,6 +47,7 @@ function toCollectionWithStats(collection: CollectionWithItemTypes): CollectionW
     description: collection.description,
     isFavorite: collection.isFavorite,
     itemCount: collection.items.length,
+    updatedAt: collection.updatedAt,
     accentColor: sortedByUsage[0]?.type.color ?? null,
     types: sortedByUsage.map(({ type }) => type),
   };
@@ -159,6 +161,7 @@ export async function createCollection(
     description: collection.description,
     isFavorite: collection.isFavorite,
     itemCount: 0,
+    updatedAt: collection.updatedAt,
     accentColor: null,
     types: [],
   };
@@ -178,6 +181,23 @@ export async function updateCollection(
       name: data.name,
       description: data.description ?? null,
     },
+    select: { id: true, name: true, description: true, isFavorite: true },
+  });
+}
+
+export async function toggleCollectionFavorite(
+  userId: string,
+  id: string,
+): Promise<CollectionDetail | null> {
+  const existing = await prisma.collection.findFirst({
+    where: { id, userId },
+    select: { isFavorite: true },
+  });
+  if (!existing) return null;
+
+  return prisma.collection.update({
+    where: { id },
+    data: { isFavorite: !existing.isFavorite },
     select: { id: true, name: true, description: true, isFavorite: true },
   });
 }

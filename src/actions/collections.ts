@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import {
   createCollection as createCollectionQuery,
   deleteCollection as deleteCollectionQuery,
+  toggleCollectionFavorite as toggleCollectionFavoriteQuery,
   updateCollection as updateCollectionQuery,
 } from "@/lib/db/collections";
 import type { CollectionDetail, CollectionWithStats } from "@/lib/db/collections";
@@ -55,6 +56,21 @@ export async function updateCollection(
       return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
     }
     console.error("Failed to update collection:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function toggleCollectionFavorite(id: string): Promise<ActionResult<CollectionDetail>> {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Not signed in" };
+
+    const updated = await toggleCollectionFavoriteQuery(session.user.id, id);
+    if (!updated) return { success: false, error: "Collection not found" };
+
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Failed to toggle collection favorite:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { deleteItem, updateItem } from "@/actions/items";
+import { deleteItem, toggleItemFavorite, updateItem } from "@/actions/items";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -107,6 +107,19 @@ export function ItemDrawer({ collections }: ItemDrawerProps) {
     }
   }
 
+  async function handleToggleFavorite() {
+    if (!item) return;
+
+    const result = await toggleItemFavorite(item.id);
+
+    if (result.success && result.data) {
+      setItem(result.data);
+      router.refresh();
+    } else {
+      toastManager.add({ title: "Failed to update favorite", description: result.error });
+    }
+  }
+
   async function handleDelete() {
     if (!item) return;
 
@@ -176,6 +189,7 @@ export function ItemDrawer({ collections }: ItemDrawerProps) {
             onCopy={handleCopy}
             onEdit={handleEdit}
             onDeleteRequest={() => setIsDeleteDialogOpen(true)}
+            onToggleFavorite={() => void handleToggleFavorite()}
           />
         </div>
 

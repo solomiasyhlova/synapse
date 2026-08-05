@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Star, Trash2 } from "lucide-react";
 
-import { deleteCollection } from "@/actions/collections";
+import { deleteCollection, toggleCollectionFavorite } from "@/actions/collections";
 import { Button } from "@/components/ui/button";
 import { DeleteCollectionDialog } from "@/components/dashboard/DeleteCollectionDialog";
 import { EditCollectionDialog } from "@/components/dashboard/EditCollectionDialog";
@@ -18,6 +18,21 @@ export function CollectionPageActions({ collection }: { collection: CollectionDe
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(collection.isFavorite);
+
+  async function handleToggleFavorite() {
+    const next = !isFavorite;
+    setIsFavorite(next);
+
+    const result = await toggleCollectionFavorite(collection.id);
+
+    if (result.success) {
+      router.refresh();
+    } else {
+      setIsFavorite(!next);
+      toastManager.add({ title: "Failed to update favorite", description: result.error });
+    }
+  }
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -36,8 +51,13 @@ export function CollectionPageActions({ collection }: { collection: CollectionDe
   return (
     <>
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="sm" className={cn(collection.isFavorite && "text-yellow-400")}>
-          <Star className={cn("size-4", collection.isFavorite && "fill-yellow-400")} />
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(isFavorite && "text-yellow-400")}
+          onClick={() => void handleToggleFavorite()}
+        >
+          <Star className={cn("size-4", isFavorite && "fill-yellow-400")} />
           Favorite
         </Button>
         <Button variant="ghost" size="sm" onClick={() => setEditOpen(true)}>

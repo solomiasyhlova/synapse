@@ -36,6 +36,14 @@ export async function getPinnedItems(userId: string): Promise<ItemWithType[]> {
   });
 }
 
+export async function getFavoriteItems(userId: string): Promise<ItemWithType[]> {
+  return prisma.item.findMany({
+    where: { userId, isFavorite: true },
+    orderBy: { updatedAt: "desc" },
+    include: { itemType: true },
+  });
+}
+
 export async function getRecentItems(
   userId: string,
   limit = DASHBOARD_RECENT_ITEMS_LIMIT,
@@ -241,6 +249,25 @@ export async function updateItem(
         create: collectionIds.map((collectionId) => ({ collectionId })),
       },
     },
+    include: ITEM_DETAIL_INCLUDE,
+  });
+
+  return {
+    ...item,
+    collections: item.collections.map(({ collection }) => collection),
+  };
+}
+
+export async function toggleItemFavorite(userId: string, id: string): Promise<ItemDetail | null> {
+  const existing = await prisma.item.findFirst({
+    where: { id, userId },
+    select: { isFavorite: true },
+  });
+  if (!existing) return null;
+
+  const item = await prisma.item.update({
+    where: { id },
+    data: { isFavorite: !existing.isFavorite },
     include: ITEM_DETAIL_INCLUDE,
   });
 

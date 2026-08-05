@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import {
   createItem as createItemQuery,
   deleteItem as deleteItemQuery,
+  toggleItemFavorite as toggleItemFavoriteQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
 import type { ItemDetail } from "@/lib/db/items";
@@ -74,6 +75,23 @@ export async function updateItem(itemId: string, data: unknown): Promise<ActionR
       return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
     }
     console.error("Failed to update item:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function toggleItemFavorite(itemId: string): Promise<ActionResult> {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Not signed in" };
+
+    const updated = await toggleItemFavoriteQuery(session.user.id, itemId);
+    if (!updated) {
+      return { success: false, error: "Item not found" };
+    }
+
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Failed to toggle item favorite:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

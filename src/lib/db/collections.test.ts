@@ -2,17 +2,22 @@ import { describe, expect, it, vi } from "vitest";
 
 const create = vi.fn();
 const findMany = vi.fn();
+const findFirst = vi.fn();
+const update = vi.fn();
 const count = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    collection: { create, findMany, count },
+    collection: { create, findMany, findFirst, update, count },
   },
 }));
 
-const { createCollection, getAllCollectionsWithStats, getSearchableCollections } = await import(
-  "./collections"
-);
+const {
+  createCollection,
+  getAllCollectionsWithStats,
+  getSearchableCollections,
+  toggleCollectionFavorite,
+} = await import("./collections");
 
 const itemType = { id: "type-1", name: "snippet", icon: "Code", color: "#3b82f6" };
 const collectionRow = (id: string) => ({
@@ -102,5 +107,36 @@ describe("getSearchableCollections", () => {
     expect(call).not.toHaveProperty("skip");
     expect(call).not.toHaveProperty("take");
     expect(result).toHaveLength(2);
+  });
+});
+
+describe("toggleCollectionFavorite", () => {
+  it("returns null when the collection isn't found or isn't owned by the user", async () => {
+    findFirst.mockResolvedValueOnce(null);
+
+    const result = await toggleCollectionFavorite("user-1", "col-1");
+
+    expect(result).toBeNull();
+    expect(findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "col-1", userId: "user-1" } }),
+    );
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("flips isFavorite from false to true", async () => {
+    findFirst.mockResolvedValueOnce({ isFavorite: false });
+    update.mockResolvedValueOnce({
+      id: "col-1",
+      name: "React Patterns",
+      description: null,
+      isFavorite: true,
+    });
+
+    const result = await toggleCollectionFavorite("user-1", "col-1");
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "col-1" }, data: { isFavorite: true } }),
+    );
+    expect(result?.isFavorite).toBe(true);
   });
 });
