@@ -110,10 +110,12 @@ export function ItemDrawer({ collections }: ItemDrawerProps) {
   async function handleToggleFavorite() {
     if (!item) return;
 
+    const wasFavorite = item.isFavorite;
     const result = await toggleItemFavorite(item.id);
 
     if (result.success && result.data) {
       setItem(result.data);
+      toastManager.add({ title: wasFavorite ? "Removed from favorites" : "Added to favorites" });
       router.refresh();
     } else {
       toastManager.add({ title: "Failed to update favorite", description: result.error });

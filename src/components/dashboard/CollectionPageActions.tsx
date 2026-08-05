@@ -27,6 +27,7 @@ export function CollectionPageActions({ collection }: { collection: CollectionDe
     const result = await toggleCollectionFavorite(collection.id);
 
     if (result.success) {
+      toastManager.add({ title: next ? "Added to favorites" : "Removed from favorites" });
       router.refresh();
     } else {
       setIsFavorite(!next);

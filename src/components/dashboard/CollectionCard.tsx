@@ -8,6 +8,7 @@ import { deleteCollection, toggleCollectionFavorite } from "@/actions/collection
 import { DeleteCollectionDialog } from "@/components/dashboard/DeleteCollectionDialog";
 import { EditCollectionDialog } from "@/components/dashboard/EditCollectionDialog";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -38,6 +39,7 @@ export function CollectionCard({ collection }: { collection: CollectionWithStats
     const result = await toggleCollectionFavorite(collection.id);
 
     if (result.success) {
+      toastManager.add({ title: next ? "Added to favorites" : "Removed from favorites" });
       router.refresh();
     } else {
       setIsFavorite(!next);
@@ -78,9 +80,19 @@ export function CollectionCard({ collection }: { collection: CollectionWithStats
             <CardTitle className="flex items-center gap-1.5 text-base">
               <span className="min-w-0 flex-1 truncate">{collection.name}</span>
               <div className="flex shrink-0 items-center gap-1">
-                {isFavorite && (
-                  <Star className="size-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
-                )}
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void handleToggleFavorite();
+                  }}
+                >
+                  <Star
+                    className={cn("size-3.5", isFavorite && "fill-yellow-400 text-yellow-400")}
+                  />
+                </Button>
                 <div onClick={(event) => event.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger
@@ -93,10 +105,6 @@ export function CollectionCard({ collection }: { collection: CollectionWithStats
                       <DropdownMenuItem onClick={() => setEditOpen(true)}>
                         <Pencil className="size-3.5" />
                         Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => void handleToggleFavorite()}>
-                        <Star className="size-3.5" />
-                        Favorite
                       </DropdownMenuItem>
                       <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
                         <Trash2 className="size-3.5" />
