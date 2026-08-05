@@ -1,27 +1,16 @@
-# Current Feature: Favorites Page
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Wire up the Favorite toggle: new toggleItemFavorite/toggleCollectionFavorite server actions, hooked into the existing (currently inert) Favorite buttons in ItemDrawerActions and CollectionPageActions
-- Star icon button in TopBar linking to /favorites
-- Protected /favorites route
-- Fetch and display all of the user's favorited items and collections
-- Compact list view (VS Code/terminal style — no cards)
-- Each row shows: type icon, title, type badge, date added
-- Separate "Items" and "Collections" sections, each with a count
-- Clicking an item opens the existing ItemDrawer; clicking a collection navigates to /collections/[id]
-- Empty state when there are no favorites
-- Sort by most recently favorited (updatedAt)
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- UI style: monospace or semi-monospace font, minimal padding, high density, subtle hover states, no cards or heavy borders — clean lines only
-- Spec source: context/features/favorites-spec.md
-- User confirmed (2026-08-05) this feature also wires up favoriting itself, not just the display page, since nothing else in the app sets isFavorite yet
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -70,3 +59,4 @@ In Progress
 - Set Password for OAuth-only Accounts: `/profile`'s Account card now renders `SetPasswordDialog` instead of `ChangePasswordDialog` when `!user.hasPassword` (i.e. GitHub-only accounts) — new dialog asks only for new password + confirm (no current-password field, since none exists), backed by a new `setPassword` server action (src/actions/profile.ts, auth-checked, rejects if a `passwordHash` already exists, hashes via bcrypt) and `setPasswordSchema` (src/lib/validations/auth.ts, sibling to `changePasswordSchema` minus the current-password field). Bundled in the same branch: small `lucide-react` icons added to the profile action buttons (`Key` on Change/Set password, `Trash2` on Delete account), matching the existing icon+label `Button` pattern from `ItemDrawerActions.tsx`. No new tests, matching the existing untested-thin-wrapper convention for profile actions.
 - Settings Page: new protected `/settings` page (src/app/settings/page.tsx, same `auth()`/`redirect` + `Card` layout pattern as `/profile`, added to `proxy.ts`'s matcher) reachable via a new "Settings" link in the sidebar's user dropdown (`UserMenu.tsx`, above the existing "Sign out" item). The Account card (password dialog — `ChangePasswordDialog`/`SetPasswordDialog` swapped on `user.hasPassword` — and `DeleteAccountDialog`) moved from `/profile` to `/settings`; `/profile` now only shows the profile info card and `ProfileStats`. All three dialogs were already route-agnostic (no hardcoded `/profile` references), so the move was a straight relocation with no dialog changes needed.
 - Editor Preferences Settings: new "Editor Preferences" card on `/settings` (`EditorPreferencesForm.tsx`, using new `Select`/`Switch` shadcn primitives — didn't exist before) with font size/tab size/theme dropdowns and word wrap/minimap toggles, backed by a new `editorPreferences` JSON column on `User` (Prisma migration `20260805131254_add_editor_preferences`, nullable `Json?`) via `getEditorPreferences`/`updateEditorPreferences` (src/lib/db/settings.ts) and an auth-checked `updateEditorPreferences` server action (src/actions/settings.ts, Zod-validated via `editorPreferencesSchema` in src/lib/validations/settings.ts); defaults/merge logic and the `EditorPreferences` shape live in `src/lib/editor-preferences.ts` (`toEditorPreferences` merges stored JSON over `DEFAULT_EDITOR_PREFERENCES` so partial/legacy records don't break). New `EditorPreferencesContext` (src/components/dashboard/editor-preferences-context.tsx) provides the current preferences app-wide via the `(app)` layout; `CodeEditor.tsx` reads from it to drive Monaco's `fontSize`/`tabSize`/`wordWrap`/`minimap`/theme instead of its previous hardcoded `synapse-dark`-only setup. Each field auto-saves on change (no save button) and shows a success/error toast. Unit tests for `getEditorPreferences`/`updateEditorPreferences` in src/lib/db/settings.test.ts (defaults, merged preferences, missing-user fallback, scoped persistence); the action/schema are untested, matching the existing untested-thin-wrapper convention. Bug caught by `npm run build` before commit (not previously surfaced since `npm test`/dev don't type-check Prisma's generated JSON input types): `updateEditorPreferences` (src/lib/db/settings.ts) passed the typed `EditorPreferences` object directly as Prisma's `Json` field value, which fails because `InputJsonObject` requires a string index signature that a concrete interface doesn't have — fixed with an `as unknown as Prisma.InputJsonValue` cast (`Prisma` imported from `@/generated/prisma/client`, matching the existing pattern in `src/lib/db/collections.ts`).
+- Favorites Page: new protected `/favorites` route (src/app/(app)/favorites/page.tsx, added to proxy.ts's matcher) showing all of a user's favorited items and collections in a dense, monospace, terminal-style list (`FavoritesList.tsx` — divide-y rows, no cards) split into "Items"/"Collections" sections with counts, sorted by `updatedAt` desc; clicking an item opens the existing `ItemDrawer`, clicking a collection navigates to `/collections/[id]`; empty states per section and overall. New `getFavoriteItems` query (src/lib/db/items.ts) alongside the existing `getFavoriteCollections`. Star icon link added to `TopBar.tsx`. Since the favorites-spec only covered the display page and nothing in the app previously set `isFavorite` (confirmed with the user before starting), this branch also wired up favoriting itself: new `toggleItemFavorite`/`toggleCollectionFavorite` query functions and server actions (ownership-checked, flip-and-return pattern matching `updateItem`/`updateCollection`), wired into the previously-inert Favorite buttons in `ItemDrawerActions`/`ItemDrawer` and `CollectionPageActions`, plus the same inert "Favorite" dropdown item in `CollectionCard.tsx` (bundled fix, same root cause). `CollectionWithStats` (src/lib/db/collections.ts) gained an `updatedAt` field — needed for the favorites list's "date added" column; there's no dedicated `favoritedAt` column, so `updatedAt` doubles as the "most recently favorited" proxy, matching the sort `getFavoriteCollections` already used. Unit tests added for `getFavoriteItems`/`toggleItemFavorite` (items.test.ts) and `toggleCollectionFavorite` (collections.test.ts). Known pre-existing issue (not introduced by this branch, left alone as out of scope): `npm run lint` reports a `react-hooks/set-state-in-effect` error in `ItemDrawer.tsx`'s item-fetch effect (`setItem(null)` called synchronously in the effect body) — confirmed via diff to predate this feature.
