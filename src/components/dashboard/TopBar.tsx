@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, Menu, Search } from "lucide-react";
+import Link from "next/link";
+import { Bell, Menu, Search, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CreateItemDialog } from "@/components/dashboard/CreateItemDialog";
@@ -42,6 +43,15 @@ export function TopBar({ itemTypes, collections }: TopBarProps) {
         </kbd>
       </button>
       <div className="ml-auto flex items-center gap-2">
+        <Button
+          render={<Link href="/favorites" />}
+          nativeButton={false}
+          variant="ghost"
+          size="icon"
+          aria-label="Favorites"
+        >
+          <Star />
+        </Button>
         <Button variant="ghost" size="icon" aria-label="Notifications">
           <Bell />
         </Button>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
 
-import { deleteCollection } from "@/actions/collections";
+import { deleteCollection, toggleCollectionFavorite } from "@/actions/collections";
 import { DeleteCollectionDialog } from "@/components/dashboard/DeleteCollectionDialog";
 import { EditCollectionDialog } from "@/components/dashboard/EditCollectionDialog";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
@@ -25,9 +25,24 @@ export function CollectionCard({ collection }: { collection: CollectionWithStats
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(collection.isFavorite);
 
   function handleNavigate() {
     router.push(`/collections/${collection.id}`);
+  }
+
+  async function handleToggleFavorite() {
+    const next = !isFavorite;
+    setIsFavorite(next);
+
+    const result = await toggleCollectionFavorite(collection.id);
+
+    if (result.success) {
+      router.refresh();
+    } else {
+      setIsFavorite(!next);
+      toastManager.add({ title: "Failed to update favorite", description: result.error });
+    }
   }
 
   async function handleDelete() {
@@ -63,7 +78,7 @@ export function CollectionCard({ collection }: { collection: CollectionWithStats
             <CardTitle className="flex items-center gap-1.5 text-base">
               <span className="min-w-0 flex-1 truncate">{collection.name}</span>
               <div className="flex shrink-0 items-center gap-1">
-                {collection.isFavorite && (
+                {isFavorite && (
                   <Star className="size-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
                 )}
                 <div onClick={(event) => event.stopPropagation()}>
@@ -79,7 +94,7 @@ export function CollectionCard({ collection }: { collection: CollectionWithStats
                         <Pencil className="size-3.5" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => void handleToggleFavorite()}>
                         <Star className="size-3.5" />
                         Favorite
                       </DropdownMenuItem>

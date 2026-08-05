@@ -1,16 +1,27 @@
-# Current Feature
+# Current Feature: Favorites Page
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Wire up the Favorite toggle: new toggleItemFavorite/toggleCollectionFavorite server actions, hooked into the existing (currently inert) Favorite buttons in ItemDrawerActions and CollectionPageActions
+- Star icon button in TopBar linking to /favorites
+- Protected /favorites route
+- Fetch and display all of the user's favorited items and collections
+- Compact list view (VS Code/terminal style — no cards)
+- Each row shows: type icon, title, type badge, date added
+- Separate "Items" and "Collections" sections, each with a count
+- Clicking an item opens the existing ItemDrawer; clicking a collection navigates to /collections/[id]
+- Empty state when there are no favorites
+- Sort by most recently favorited (updatedAt)
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- UI style: monospace or semi-monospace font, minimal padding, high density, subtle hover states, no cards or heavy borders — clean lines only
+- Spec source: context/features/favorites-spec.md
+- User confirmed (2026-08-05) this feature also wires up favoriting itself, not just the display page, since nothing else in the app sets isFavorite yet
 
 ## History
 

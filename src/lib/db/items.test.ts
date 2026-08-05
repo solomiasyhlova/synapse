@@ -20,10 +20,12 @@ vi.mock("@/lib/prisma", () => ({
 const {
   createItem,
   deleteItem,
+  getFavoriteItems,
   getItemById,
   getItemsByCollection,
   getItemsByType,
   getSearchableItems,
+  toggleItemFavorite,
   updateItem,
 } = await import("./items");
 
@@ -496,6 +498,94 @@ describe("getSearchableItems", () => {
     const result = await getSearchableItems("user-1");
 
     expect(result[0].contentPreview).toHaveLength(140);
+  });
+});
+
+describe("getFavoriteItems", () => {
+  it("fetches only favorited items, sorted by most recently updated", async () => {
+    findMany.mockResolvedValueOnce([{ id: "item-1", isFavorite: true }]);
+
+    const result = await getFavoriteItems("user-1");
+
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", isFavorite: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+    );
+    expect(result).toEqual([{ id: "item-1", isFavorite: true }]);
+  });
+});
+
+describe("toggleItemFavorite", () => {
+  it("returns null when the item isn't found or isn't owned by the user", async () => {
+    findFirst.mockResolvedValueOnce(null);
+
+    const result = await toggleItemFavorite("user-1", "item-1");
+
+    expect(result).toBeNull();
+    expect(findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "item-1", userId: "user-1" } }),
+    );
+  });
+
+  it("flips isFavorite from false to true", async () => {
+    findFirst.mockResolvedValueOnce({ isFavorite: false });
+    update.mockResolvedValueOnce({
+      id: "item-1",
+      title: "useAuth Hook",
+      description: null,
+      isFavorite: true,
+      isPinned: false,
+      updatedAt: new Date("2024-01-16"),
+      createdAt: new Date("2024-01-15"),
+      contentType: "TEXT",
+      content: "export function useAuth() {}",
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: "typescript",
+      itemType: { id: "type-1", name: "snippet", icon: "Code", color: "#3b82f6" },
+      tags: [],
+      collections: [],
+    });
+
+    const result = await toggleItemFavorite("user-1", "item-1");
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "item-1" }, data: { isFavorite: true } }),
+    );
+    expect(result?.isFavorite).toBe(true);
+  });
+
+  it("flips isFavorite from true to false", async () => {
+    findFirst.mockResolvedValueOnce({ isFavorite: true });
+    update.mockResolvedValueOnce({
+      id: "item-1",
+      title: "useAuth Hook",
+      description: null,
+      isFavorite: false,
+      isPinned: false,
+      updatedAt: new Date("2024-01-16"),
+      createdAt: new Date("2024-01-15"),
+      contentType: "TEXT",
+      content: null,
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: null,
+      itemType: { id: "type-1", name: "snippet", icon: "Code", color: "#3b82f6" },
+      tags: [],
+      collections: [],
+    });
+
+    await toggleItemFavorite("user-1", "item-1");
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "item-1" }, data: { isFavorite: false } }),
+    );
   });
 });
 
