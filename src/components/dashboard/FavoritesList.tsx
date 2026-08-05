@@ -1,10 +1,18 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Folder } from "lucide-react";
 
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { CollectionWithStats } from "@/lib/db/collections";
 import type { ItemWithType } from "@/lib/db/items";
 
@@ -13,8 +21,73 @@ interface FavoritesListProps {
   collections: CollectionWithStats[];
 }
 
+type ItemSortKey = "date" | "name" | "type";
+type CollectionSortKey = "date" | "name";
+
+const ITEM_SORT_LABELS: Record<ItemSortKey, string> = {
+  date: "Date",
+  name: "Name",
+  type: "Type",
+};
+
+const COLLECTION_SORT_LABELS: Record<CollectionSortKey, string> = {
+  date: "Date",
+  name: "Name",
+};
+
+function sortItems(items: ItemWithType[], sortKey: ItemSortKey) {
+  return [...items].sort((a, b) => {
+    switch (sortKey) {
+      case "name":
+        return a.title.localeCompare(b.title);
+      case "type":
+        return a.itemType.name.localeCompare(b.itemType.name) || a.title.localeCompare(b.title);
+      case "date":
+      default:
+        return b.updatedAt.getTime() - a.updatedAt.getTime();
+    }
+  });
+}
+
+function sortCollections(collections: CollectionWithStats[], sortKey: CollectionSortKey) {
+  return [...collections].sort((a, b) => {
+    switch (sortKey) {
+      case "name":
+        return a.name.localeCompare(b.name);
+      case "date":
+      default:
+        return b.updatedAt.getTime() - a.updatedAt.getTime();
+    }
+  });
+}
+
 function formatShortDate(date: Date) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function SortSelect<T extends string>({
+  value,
+  labels,
+  onValueChange,
+}: {
+  value: T;
+  labels: Record<T, string>;
+  onValueChange: (value: T) => void;
+}) {
+  return (
+    <Select items={labels} value={value} onValueChange={(next) => onValueChange(next as T)}>
+      <SelectTrigger size="sm" className="w-28 font-mono text-xs">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {(Object.keys(labels) as T[]).map((key) => (
+          <SelectItem key={key} value={key} className="font-mono text-xs">
+            {labels[key]}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 }
 
 function FavoriteRow({
@@ -55,6 +128,14 @@ function FavoriteRow({
 export function FavoritesList({ items, collections }: FavoritesListProps) {
   const { openItem } = useItemDrawer();
   const router = useRouter();
+  const [itemSort, setItemSort] = useState<ItemSortKey>("date");
+  const [collectionSort, setCollectionSort] = useState<CollectionSortKey>("date");
+
+  const sortedItems = useMemo(() => sortItems(items, itemSort), [items, itemSort]);
+  const sortedCollections = useMemo(
+    () => sortCollections(collections, collectionSort),
+    [collections, collectionSort]
+  );
 
   if (items.length === 0 && collections.length === 0) {
     return (
@@ -67,12 +148,17 @@ export function FavoritesList({ items, collections }: FavoritesListProps) {
   return (
     <div className="space-y-6">
       <section>
-        <h2 className="mb-1 font-mono text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Items ({items.length})
-        </h2>
+        <div className="mb-1 flex items-center justify-between gap-4">
+          <h2 className="font-mono text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Items ({items.length})
+          </h2>
+          {items.length > 0 && (
+            <SortSelect value={itemSort} labels={ITEM_SORT_LABELS} onValueChange={setItemSort} />
+          )}
+        </div>
         {items.length > 0 ? (
           <div className="divide-y divide-border">
-            {items.map((item) => (
+            {sortedItems.map((item) => (
               <FavoriteRow
                 key={item.id}
                 icon={<TypeIcon name={item.itemType.icon} className="size-3.5" />}
@@ -90,12 +176,21 @@ export function FavoritesList({ items, collections }: FavoritesListProps) {
       </section>
 
       <section>
-        <h2 className="mb-1 font-mono text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Collections ({collections.length})
-        </h2>
+        <div className="mb-1 flex items-center justify-between gap-4">
+          <h2 className="font-mono text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Collections ({collections.length})
+          </h2>
+          {collections.length > 0 && (
+            <SortSelect
+              value={collectionSort}
+              labels={COLLECTION_SORT_LABELS}
+              onValueChange={setCollectionSort}
+            />
+          )}
+        </div>
         {collections.length > 0 ? (
           <div className="divide-y divide-border">
-            {collections.map((collection) => (
+            {sortedCollections.map((collection) => (
               <FavoriteRow
                 key={collection.id}
                 icon={<Folder className="size-3.5" />}
