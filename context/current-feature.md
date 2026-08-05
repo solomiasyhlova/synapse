@@ -1,27 +1,16 @@
-# Current Feature: Editor Preferences Settings
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add an Editor Preferences section to the settings page
-- Font size dropdown
-- Tab size dropdown
-- Word wrap toggle (default: on)
-- Minimap toggle (default: off)
-- Theme dropdown: vs-dark, monokai, github-dark (default: vs-dark)
-- Preferences apply to the Monaco editor component
-- Changes auto-save (no save button), with a success toast on save
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-- Store preferences in a new JSON column `editorPreferences` on the `User` model
-- Requires a Prisma migration (`prisma migrate dev` — never `db push`, per project rules)
-- New server action to update preferences
-- New `EditorPreferencesContext` for client components to read/apply preferences
-- Source spec: context/features/editor-settings-spec.md
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -69,3 +58,4 @@ In Progress
 - Pagination: `/items/[type]`, `/collections/[id]`, and `/collections` (added past the original two-page spec, since it's the only page that actually lists collections and previously fetched all of them unbounded) now paginate via a new shared `Pagination` component (src/components/dashboard/Pagination.tsx — numbered page links + prev/next as `Button`+`Link`, prev/next render `disabled` instead of a link when unavailable, renders nothing for a single page) and `src/lib/pagination.ts` (`paginationSkip`/`toPaginatedResult` helpers, `PaginatedResult<T>` type). New `src/lib/constants.ts` holds `ITEMS_PER_PAGE`/`COLLECTIONS_PER_PAGE` (21) and `DASHBOARD_COLLECTIONS_LIMIT`/`DASHBOARD_RECENT_ITEMS_LIMIT` (6/10, replacing the previous per-file magic-number defaults on `getRecentCollections`/`getRecentItems`). `getItemsByType`/`getItemsByCollection` (src/lib/db/items.ts) and `getAllCollectionsWithStats` (src/lib/db/collections.ts) now take a `page` arg and use Prisma `skip`/`take` + a parallel `count` query instead of fetching everything. Split `getAllCollectionsWithStats` into that (paginated) and a new `getSearchableCollections` (unpaginated, mirrors the existing `getSearchableItems` pattern) since the command-palette search needs to see every collection, not just one page — the `(app)` layout was switched to the new function so global search wasn't silently broken past 21 collections. Unit tests added for the pagination math (src/lib/pagination.test.ts) and the paginated query functions (items.test.ts, collections.test.ts).
 - Set Password for OAuth-only Accounts: `/profile`'s Account card now renders `SetPasswordDialog` instead of `ChangePasswordDialog` when `!user.hasPassword` (i.e. GitHub-only accounts) — new dialog asks only for new password + confirm (no current-password field, since none exists), backed by a new `setPassword` server action (src/actions/profile.ts, auth-checked, rejects if a `passwordHash` already exists, hashes via bcrypt) and `setPasswordSchema` (src/lib/validations/auth.ts, sibling to `changePasswordSchema` minus the current-password field). Bundled in the same branch: small `lucide-react` icons added to the profile action buttons (`Key` on Change/Set password, `Trash2` on Delete account), matching the existing icon+label `Button` pattern from `ItemDrawerActions.tsx`. No new tests, matching the existing untested-thin-wrapper convention for profile actions.
 - Settings Page: new protected `/settings` page (src/app/settings/page.tsx, same `auth()`/`redirect` + `Card` layout pattern as `/profile`, added to `proxy.ts`'s matcher) reachable via a new "Settings" link in the sidebar's user dropdown (`UserMenu.tsx`, above the existing "Sign out" item). The Account card (password dialog — `ChangePasswordDialog`/`SetPasswordDialog` swapped on `user.hasPassword` — and `DeleteAccountDialog`) moved from `/profile` to `/settings`; `/profile` now only shows the profile info card and `ProfileStats`. All three dialogs were already route-agnostic (no hardcoded `/profile` references), so the move was a straight relocation with no dialog changes needed.
+- Editor Preferences Settings: new "Editor Preferences" card on `/settings` (`EditorPreferencesForm.tsx`, using new `Select`/`Switch` shadcn primitives — didn't exist before) with font size/tab size/theme dropdowns and word wrap/minimap toggles, backed by a new `editorPreferences` JSON column on `User` (Prisma migration `20260805131254_add_editor_preferences`, nullable `Json?`) via `getEditorPreferences`/`updateEditorPreferences` (src/lib/db/settings.ts) and an auth-checked `updateEditorPreferences` server action (src/actions/settings.ts, Zod-validated via `editorPreferencesSchema` in src/lib/validations/settings.ts); defaults/merge logic and the `EditorPreferences` shape live in `src/lib/editor-preferences.ts` (`toEditorPreferences` merges stored JSON over `DEFAULT_EDITOR_PREFERENCES` so partial/legacy records don't break). New `EditorPreferencesContext` (src/components/dashboard/editor-preferences-context.tsx) provides the current preferences app-wide via the `(app)` layout; `CodeEditor.tsx` reads from it to drive Monaco's `fontSize`/`tabSize`/`wordWrap`/`minimap`/theme instead of its previous hardcoded `synapse-dark`-only setup. Each field auto-saves on change (no save button) and shows a success/error toast. Unit tests for `getEditorPreferences`/`updateEditorPreferences` in src/lib/db/settings.test.ts (defaults, merged preferences, missing-user fallback, scoped persistence); the action/schema are untested, matching the existing untested-thin-wrapper convention. Bug caught by `npm run build` before commit (not previously surfaced since `npm test`/dev don't type-check Prisma's generated JSON input types): `updateEditorPreferences` (src/lib/db/settings.ts) passed the typed `EditorPreferences` object directly as Prisma's `Json` field value, which fails because `InputJsonObject` requires a string index signature that a concrete interface doesn't have — fixed with an `as unknown as Prisma.InputJsonValue` cast (`Prisma` imported from `@/generated/prisma/client`, matching the existing pattern in `src/lib/db/collections.ts`).
