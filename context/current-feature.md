@@ -1,16 +1,32 @@
-# Current Feature
+# Current Feature: Homepage Mockup
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
+- Static marketing homepage prototype for Synapse in `prototypes/homepage/` (`index.html`, `styles.css`, `script.js`)
+- Fixed top nav: logo, Features/Pricing links, Sign In/Get Started buttons, opacity increases on scroll
+- Hero text: "Stop Losing Your Developer Knowledge" gradient headline, subheadline, CTA buttons
+- Hero visual: chaos container (left) → pulsing arrow (center) → dashboard preview (right)
+  - Chaos container: "Your knowledge today..." box with 8 floating icons (Notion, GitHub, Slack, VS Code, browser tabs, terminal, text file, bookmark) that drift, bounce off walls, rotate/scale-pulse, and repel from the mouse cursor (requestAnimationFrame)
+  - Arrow: CSS pulse animation
+  - Dashboard preview: "...with Synapse" box with sidebar nav + grid of item cards with colored top borders
+- Features section: 6 cards (Code Snippets, AI Prompts, Instant Search, Commands, Files & Docs, Collections), each in its item type's accent color
+- AI section: two columns — left "Pro Feature" badge + AI capability checklist, right code editor mockup with "AI Generated Tags" demo
+- Pricing section: Free ($0, 50 items, 3 collections) vs Pro ($8/mo, unlimited, AI features, "Most Popular" badge) + monthly/yearly ($72/yr) toggle
+- CTA section: "Ready to Organize Your Knowledge?" with button
+- Footer: logo, link columns, copyright with current year
+- Scroll-triggered fade-in animations on elements
+- Responsive: chaos/arrow/dashboard stack vertically on mobile (single column grids), arrow rotates 90° to point down
 
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
+- Dark theme. Item type accent colors (distinct from the main app's palette in context/project-overview.md — this spec defines its own):
+  - Snippet `#3b82f6` (Blue), Prompt `#f59e0b` (Amber), Command `#06b6d4` (Cyan), Note `#22c55e` (Green), File `#64748b` (Slate), Image `#ec4899` (Pink), URL `#6366f1` (Indigo)
+- This is a standalone static prototype (plain HTML/CSS/JS), not part of the Next.js app — lives under `prototypes/homepage/`
+- Full spec: context/features/homepage-mockup-spec.md
 
 ## History
 

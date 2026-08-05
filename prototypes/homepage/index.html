@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synapse — One hub for everything you know</title>
+  <meta name="description" content="Synapse is a fast, searchable, AI-enhanced hub for snippets, prompts, notes, commands, links, and files." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav id="navbar" class="navbar">
+    <div class="container navbar-inner">
+      <a href="#top" class="logo">
+        <span class="logo-mark" aria-hidden="true">◆</span>
+        <span class="logo-text">Synapse</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+      </div>
+      <div class="nav-actions">
+        <a href="#" class="btn btn-ghost">Sign In</a>
+        <a href="#" class="btn btn-primary">Get Started</a>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main id="top">
+    <!-- Hero -->
+    <header class="hero">
+      <div class="container">
+        <div class="hero-text fade-in">
+          <span class="eyebrow">Developer knowledge hub</span>
+          <h1>Stop Losing Your<br class="hero-break" /> <span class="gradient-text">Developer Knowledge</span></h1>
+          <p class="hero-subheadline">
+            Snippets, prompts, notes, commands, files and links scattered across a dozen tools.
+            Synapse pulls it all into one fast, searchable, AI-enhanced hub.
+          </p>
+          <div class="hero-ctas">
+            <a href="#" class="btn btn-primary btn-lg">Get Started Free</a>
+            <a href="#features" class="btn btn-secondary btn-lg">See Features</a>
+          </div>
+        </div>
+
+        <div class="hero-visual fade-in">
+          <!-- Chaos Container -->
+          <div class="chaos-container" id="chaosContainer">
+            <span class="visual-label">Your knowledge today...</span>
+            <div class="chaos-icons" id="chaosIcons">
+              <div class="chaos-icon" data-tool="notion" title="Notion">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+                  <line x1="7" y1="8" x2="17" y2="8"></line>
+                  <line x1="7" y1="12" x2="14" y2="12"></line>
+                  <line x1="7" y1="16" x2="12" y2="16"></line>
+                </svg>
+              </div>
+              <div class="chaos-icon" data-tool="github" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M9 18c-3.5 1-3.5-2-5-2"></path>
+                  <path d="M9 20v-2.6c0-.7.2-1.2.6-1.6-2-.2-4.1-1-4.1-4.5 0-1 .3-1.8 1-2.5-.1-.2-.4-1.2.1-2.6 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.6.6.7 1 1.5 1 2.5 0 3.5-2.1 4.3-4.1 4.5.3.4.6 1 .6 1.9V20"></path>
+                </svg>
+              </div>
+              <div class="chaos-icon" data-tool="slack" title="Slack">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="2" width="4" height="9" rx="2"></rect>
+                  <rect x="9" y="13" width="4" height="9" rx="2"></rect>
+                  <rect x="13" y="9" width="9" height="4" rx="2"></rect>
+                  <rect x="2" y="9" width="9" height="4" rx="2"></rect>
+                </svg>
+              </div>
+              <div class="chaos-icon" data-tool="vscode" title="VS Code">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 8 4 12 9 16"></polyline>
+                  <polyline points="15 8 20 12 15 16"></polyline>
+                  <line x1="13" y1="5" x2="11" y2="19"></line>
+                </svg>
+              </div>
+              <div class="chaos-icon" data-tool="browser" title="Browser tabs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="5" width="20" height="15" rx="2"></rect>
+                  <line x1="2" y1="9" x2="22" y2="9"></line>
+                  <line x1="5.5" y1="7" x2="8" y2="7"></line>
+                  <line x1="10.5" y1="7" x2="13" y2="7"></line>
+                </svg>
+              </div>
+              <div class="chaos-icon" data-tool="terminal" title="Terminal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                  <polyline points="6 9 10 12 6 15"></polyline>
+                  <line x1="12" y1="15" x2="17" y2="15"></line>
+                </svg>
+              </div>
+              <div class="chaos-icon" data-tool="textfile" title="Text file">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="8" y1="13" x2="16" y2="13"></line>
+                  <line x1="8" y1="17" x2="13" y2="17"></line>
+                </svg>
+              </div>
+              <div class="chaos-icon" data-tool="bookmark" title="Bookmark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transform Arrow -->
+          <div class="transform-arrow" aria-hidden="true">
+            <svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="2" y1="12" x2="40" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></line>
+              <polyline points="30 2 44 12 30 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+            </svg>
+          </div>
+
+          <!-- Dashboard Preview -->
+          <div class="dashboard-preview">
+            <span class="visual-label">...with Synapse</span>
+            <div class="mini-dashboard">
+              <div class="mini-sidebar">
+                <div class="mini-logo"></div>
+                <div class="mini-nav-item active"></div>
+                <div class="mini-nav-item"></div>
+                <div class="mini-nav-item"></div>
+                <div class="mini-nav-item"></div>
+                <div class="mini-nav-item"></div>
+              </div>
+              <div class="mini-main">
+                <div class="mini-topbar">
+                  <div class="mini-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <span class="mini-search-line"></span>
+                  </div>
+                  <div class="mini-add-btn">+</div>
+                </div>
+                <div class="mini-item-grid">
+                  <div class="mini-card" style="--accent:#3b82f6">
+                    <div class="mini-card-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    </div>
+                    <span class="mini-card-line"></span>
+                    <span class="mini-card-line mini-card-line-sm"></span>
+                  </div>
+                  <div class="mini-card" style="--accent:#f59e0b">
+                    <div class="mini-card-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+                    </div>
+                    <span class="mini-card-line"></span>
+                    <span class="mini-card-line mini-card-line-sm"></span>
+                  </div>
+                  <div class="mini-card" style="--accent:#06b6d4">
+                    <div class="mini-card-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><polyline points="6 9 10 12 6 15"></polyline><line x1="12" y1="15" x2="17" y2="15"></line></svg>
+                    </div>
+                    <span class="mini-card-line"></span>
+                    <span class="mini-card-line mini-card-line-sm"></span>
+                  </div>
+                  <div class="mini-card" style="--accent:#22c55e">
+                    <div class="mini-card-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg>
+                    </div>
+                    <span class="mini-card-line"></span>
+                    <span class="mini-card-line mini-card-line-sm"></span>
+                  </div>
+                  <div class="mini-card" style="--accent:#ec4899">
+                    <div class="mini-card-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    </div>
+                    <span class="mini-card-line"></span>
+                    <span class="mini-card-line mini-card-line-sm"></span>
+                  </div>
+                  <div class="mini-card" style="--accent:#6366f1">
+                    <div class="mini-card-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"></path></svg>
+                    </div>
+                    <span class="mini-card-line"></span>
+                    <span class="mini-card-line mini-card-line-sm"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Features -->
+    <section id="features" class="section">
+      <div class="container">
+        <div class="section-heading fade-in">
+          <span class="eyebrow">Features</span>
+          <h2>Everything you save, one place to find it</h2>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card fade-in" style="--accent:#3b82f6">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            </div>
+            <h3>Code Snippets</h3>
+            <p>Save and organize reusable code with syntax highlighting for every language.</p>
+          </div>
+          <div class="feature-card fade-in" style="--accent:#f59e0b">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+            </div>
+            <h3>AI Prompts</h3>
+            <p>Keep your best prompts and system messages ready to reuse, not buried in chat history.</p>
+          </div>
+          <div class="feature-card fade-in" style="--accent:#06b6d4">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <h3>Instant Search</h3>
+            <p>Full-text search across content, tags, titles, and types — find anything in seconds.</p>
+          </div>
+          <div class="feature-card fade-in" style="--accent:#22c55e">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><polyline points="6 9 10 12 6 15"></polyline><line x1="12" y1="15" x2="17" y2="15"></line></svg>
+            </div>
+            <h3>Commands</h3>
+            <p>Never dig through bash history again — pin the commands you actually reuse.</p>
+          </div>
+          <div class="feature-card fade-in" style="--accent:#64748b">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+            <h3>Files &amp; Docs</h3>
+            <p>Upload context files, docs, and images so they live next to the knowledge that needs them.</p>
+          </div>
+          <div class="feature-card fade-in" style="--accent:#6366f1">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+            </div>
+            <h3>Collections</h3>
+            <p>Group items of any type into collections — an item can live in more than one at a time.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Section -->
+    <section id="ai" class="section section-alt">
+      <div class="container ai-grid">
+        <div class="ai-copy fade-in">
+          <span class="pro-badge">Pro Feature</span>
+          <h2>Let AI do the busywork</h2>
+          <p class="ai-subheadline">Google Gemini quietly organizes what you save, so you spend less time filing and more time building.</p>
+          <ul class="ai-checklist">
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>AI auto-tag suggestions</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Instant AI summaries</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>"Explain this code" on any snippet</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Prompt optimizer</span>
+            </li>
+          </ul>
+        </div>
+        <div class="ai-demo fade-in">
+          <div class="code-editor-mock">
+            <div class="code-editor-header">
+              <span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span>
+              <span class="code-editor-filename">auth-helpers.ts</span>
+            </div>
+            <pre class="code-editor-body"><code><span class="tok-kw">export function</span> <span class="tok-fn">verifyToken</span>(<span class="tok-var">token</span>: <span class="tok-type">string</span>) {
+  <span class="tok-kw">const</span> <span class="tok-var">payload</span> = <span class="tok-fn">jwt</span>.<span class="tok-fn">verify</span>(<span class="tok-var">token</span>, <span class="tok-var">SECRET</span>);
+  <span class="tok-kw">return</span> <span class="tok-var">payload</span>;
+}</code></pre>
+            <div class="ai-tags-demo">
+              <span class="ai-tags-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+                AI Generated Tags
+              </span>
+              <div class="ai-tags-list">
+                <span class="ai-tag">auth</span>
+                <span class="ai-tag">jwt</span>
+                <span class="ai-tag">typescript</span>
+                <span class="ai-tag">security</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="section">
+      <div class="container">
+        <div class="section-heading fade-in">
+          <span class="eyebrow">Pricing</span>
+          <h2>Simple pricing, no surprises</h2>
+          <div class="billing-toggle">
+            <span class="billing-label" data-active="true">Monthly</span>
+            <button class="toggle-switch" id="billingToggle" role="switch" aria-checked="false" aria-label="Toggle yearly billing">
+              <span class="toggle-knob"></span>
+            </button>
+            <span class="billing-label">Yearly <span class="save-chip">Save 25%</span></span>
+          </div>
+        </div>
+
+        <div class="pricing-grid">
+          <div class="pricing-card fade-in">
+            <h3>Free</h3>
+            <p class="pricing-tagline">For getting your knowledge out of the void.</p>
+            <div class="price">
+              <span class="price-amount">$0</span>
+              <span class="price-period">/forever</span>
+            </div>
+            <ul class="pricing-features">
+              <li>50 items total</li>
+              <li>3 collections</li>
+              <li>All system types except File &amp; Image</li>
+              <li>Basic search</li>
+            </ul>
+            <a href="#" class="btn btn-secondary btn-block">Get Started Free</a>
+          </div>
+
+          <div class="pricing-card pricing-card-featured fade-in">
+            <span class="popular-badge">Most Popular</span>
+            <h3>Pro</h3>
+            <p class="pricing-tagline">For developers who save everything.</p>
+            <div class="price">
+              <span class="price-amount" data-monthly="$8" data-yearly="$6">$8</span>
+              <span class="price-period" data-monthly="/mo" data-yearly="/mo, billed yearly">/mo</span>
+            </div>
+            <ul class="pricing-features">
+              <li>Unlimited items</li>
+              <li>Unlimited collections</li>
+              <li>File &amp; image uploads</li>
+              <li>Full search</li>
+              <li>AI auto-tagging, summaries &amp; more</li>
+              <li>Export (JSON / ZIP)</li>
+              <li>Priority support</li>
+            </ul>
+            <a href="#" class="btn btn-primary btn-block">Start Free Trial</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="container cta-inner fade-in">
+        <h2>Ready to Organize Your Knowledge?</h2>
+        <p>Join developers who stopped losing their best snippets, prompts, and notes.</p>
+        <a href="#" class="btn btn-primary btn-lg">Get Started Free</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a href="#top" class="logo">
+          <span class="logo-mark" aria-hidden="true">◆</span>
+          <span class="logo-text">Synapse</span>
+        </a>
+        <p>One fast, searchable, AI-enhanced hub for everything a developer keeps scattered.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Blog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; <span id="year"></span> Synapse. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
