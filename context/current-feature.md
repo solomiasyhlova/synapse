@@ -1,23 +1,16 @@
-# Current Feature: Pinned Items
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Create a `toggleItemPin` server action
-- Make the Pin button in `ItemDrawer` clickable (exists but has no `onClick`)
-- Optimistic UI updates for instant feedback
-- Toast notification on success/error
-- Pinned items sort to top of listings
-- Follow the existing Favorite Button pattern
-- Items only (not collections)
-- Pin icon on `ItemCard` remains a static indicator (not made clickable)
+<!-- Bullet points of what success looks like -->
 
 ## Notes
 
-Make the existing Pin button in ItemDrawer functional: pinned items should appear at the top of listings and in the dashboard's pinned items section. Source spec: context/features/pinned-spec.md.
+<!-- Additional context, constraints, or details from spec -->
 
 ## History
 
@@ -69,3 +62,4 @@ Make the existing Pin button in ItemDrawer functional: pinned items should appea
 - Favorites Page: new protected `/favorites` route (src/app/(app)/favorites/page.tsx, added to proxy.ts's matcher) showing all of a user's favorited items and collections in a dense, monospace, terminal-style list (`FavoritesList.tsx` — divide-y rows, no cards) split into "Items"/"Collections" sections with counts, sorted by `updatedAt` desc; clicking an item opens the existing `ItemDrawer`, clicking a collection navigates to `/collections/[id]`; empty states per section and overall. New `getFavoriteItems` query (src/lib/db/items.ts) alongside the existing `getFavoriteCollections`. Star icon link added to `TopBar.tsx`. Since the favorites-spec only covered the display page and nothing in the app previously set `isFavorite` (confirmed with the user before starting), this branch also wired up favoriting itself: new `toggleItemFavorite`/`toggleCollectionFavorite` query functions and server actions (ownership-checked, flip-and-return pattern matching `updateItem`/`updateCollection`), wired into the previously-inert Favorite buttons in `ItemDrawerActions`/`ItemDrawer` and `CollectionPageActions`, plus the same inert "Favorite" dropdown item in `CollectionCard.tsx` (bundled fix, same root cause). `CollectionWithStats` (src/lib/db/collections.ts) gained an `updatedAt` field — needed for the favorites list's "date added" column; there's no dedicated `favoritedAt` column, so `updatedAt` doubles as the "most recently favorited" proxy, matching the sort `getFavoriteCollections` already used. Unit tests added for `getFavoriteItems`/`toggleItemFavorite` (items.test.ts) and `toggleCollectionFavorite` (collections.test.ts). Known pre-existing issue (not introduced by this branch, left alone as out of scope): `npm run lint` reports a `react-hooks/set-state-in-effect` error in `ItemDrawer.tsx`'s item-fetch effect (`setItem(null)` called synchronously in the effect body) — confirmed via diff to predate this feature.
 - Favorite Toggle Buttons on Cards: `ItemCard`, `ImageCard`, and `FileListRow` (previously showing only a static star indicator for `isFavorite`) each gained a clickable ghost icon-button that calls the existing `toggleItemFavorite` action with optimistic local state (flip immediately, revert + toast on failure) and `stopPropagation` so it doesn't also open the item drawer; `ImageCard`'s root element changed from a native `<button>` to `div[role=button]` since a native button can't contain the nested toggle button (same pattern `FileListRow` already used for its Download link). `CollectionCard.tsx`'s static star became a directly clickable toggle on the card header (calling the existing `toggleCollectionFavorite`), and the now-redundant "Favorite" entry was removed from its 3-dot dropdown menu. Bundled in the same branch: success toasts ("Added to favorites"/"Removed from favorites") added to every favorite toggle site, including the drawer (`ItemDrawer.tsx`) and collection detail page (`CollectionPageActions.tsx`), which previously only toasted on failure. No new server actions, schema, or tests — pure UI wiring onto the `toggleItemFavorite`/`toggleCollectionFavorite` actions built during the earlier Favorites Page feature.
 - Favorites Page Sorting: `FavoritesList.tsx` (src/components/dashboard/FavoritesList.tsx) gained independent per-section sort dropdowns — Name/Date/Type for Items, Name/Date for Collections (Type omitted there since every collection's type label is just "collection") — using the existing shadcn `Select` primitive, styled to match the page's monospace terminal look; sorting is pure client-side via `useMemo` (no server round-trip), Date sorts by `updatedAt` desc (the existing "favorited-at" proxy), Name/Type sort alphabetically via `localeCompare`. Passed `items={labels}` directly to the Base UI `Select` root so the trigger resolves the capitalized label ("Date"/"Name"/"Type") on first paint instead of briefly falling back to the raw lowercase sort key before the popup's items register. No new server actions, schema, or tests — pure client-side UI logic on data the page already fetches.
+- Pinned Items: the previously inert Pin button in `ItemDrawerActions.tsx` is now wired up, following the same pattern as the earlier Favorite feature — new `toggleItemPin` query fn (src/lib/db/items.ts) and server action (src/actions/items.ts), mirroring `toggleItemFavorite` exactly (flip-and-return, ownership-checked); `ItemDrawer.tsx` gained a `handleTogglePin` handler with a success/failure toast and `router.refresh()`. `getItemsByType`/`getItemsByCollection` (src/lib/db/items.ts) now `orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }]` so pinned items float to the top of `/items/[type]` and `/collections/[id]` listings; the dashboard's pinned section already read `isPinned` via the existing `getPinnedItems`, so it needed no changes. Items only, per spec — `ItemCard`'s pin icon stays a static indicator, not made clickable. Unit tests added for `toggleItemPin` (both flip directions, not-found case) and the updated `orderBy` in `getItemsByType`/`getItemsByCollection` (src/lib/db/items.test.ts). Known pre-existing issue (not introduced by this branch, left alone as out of scope): `npm run lint` still reports the `react-hooks/set-state-in-effect` error in `ItemDrawer.tsx`'s item-fetch effect, first flagged during the Favorites Page feature.
