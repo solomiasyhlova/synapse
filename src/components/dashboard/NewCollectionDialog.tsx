@@ -62,9 +62,9 @@ export function NewCollectionDialog() {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
-          <Button variant="outline">
+          <Button variant="outline" aria-label="New Collection">
             <FolderPlus />
-            New Collection
+            <span className="hidden sm:inline">New Collection</span>
           </Button>
         }
       />

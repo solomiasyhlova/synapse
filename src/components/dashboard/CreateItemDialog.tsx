@@ -115,9 +115,9 @@ export function CreateItemDialog({
       <DialogTrigger
         render={
           trigger ?? (
-            <Button>
+            <Button aria-label="New item">
               <Plus />
-              New item
+              <span className="hidden sm:inline">New item</span>
             </Button>
           )
         }

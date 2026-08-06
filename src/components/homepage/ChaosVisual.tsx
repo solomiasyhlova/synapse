@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 const ICON_SIZE = 44;
 const REPEL_RADIUS = 90;
 const REPEL_STRENGTH = 1400;
+const ICON_SEPARATION = ICON_SIZE + 6;
 
 const ICONS = [
   {
@@ -151,10 +152,7 @@ export function ChaosVisual() {
       lastTime = now;
       const t = now / 1000;
 
-      state.forEach((s, i) => {
-        const maxX = Math.max(width - ICON_SIZE, 0);
-        const maxY = Math.max(height - ICON_SIZE, 0);
-
+      state.forEach((s) => {
         s.x += s.vx * dt;
         s.y += s.vy * dt;
 
@@ -170,6 +168,31 @@ export function ChaosVisual() {
             s.y += (dy / dist) * force * 0.001 * dt;
           }
         }
+      });
+
+      // Push overlapping icons apart so they don't drift through each other.
+      for (let i = 0; i < state.length; i++) {
+        for (let j = i + 1; j < state.length; j++) {
+          const a = state[i];
+          const b = state[j];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < ICON_SEPARATION && dist > 0.01) {
+            const overlap = (ICON_SEPARATION - dist) / 2;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            a.x -= nx * overlap;
+            a.y -= ny * overlap;
+            b.x += nx * overlap;
+            b.y += ny * overlap;
+          }
+        }
+      }
+
+      state.forEach((s, i) => {
+        const maxX = Math.max(width - ICON_SIZE, 0);
+        const maxY = Math.max(height - ICON_SIZE, 0);
 
         if (s.x <= 0) {
           s.x = 0;

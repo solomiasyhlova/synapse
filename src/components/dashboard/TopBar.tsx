@@ -34,11 +34,12 @@ export function TopBar({ itemTypes, collections }: TopBarProps) {
       <button
         type="button"
         onClick={() => setSearchOpen(true)}
-        className="relative h-8 max-w-md flex-1 rounded-lg border border-input bg-transparent pr-12 pl-8 text-left text-sm text-muted-foreground transition-colors hover:bg-input/30 dark:bg-input/30 dark:hover:bg-input/50"
+        aria-label="Search content, tags, titles"
+        className="relative h-8 w-8 shrink-0 rounded-lg border border-input bg-transparent text-left text-sm text-muted-foreground transition-colors hover:bg-input/30 sm:w-auto sm:max-w-md sm:flex-1 sm:pr-12 sm:pl-8 dark:bg-input/30 dark:hover:bg-input/50"
       >
-        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-        Search content, tags, titles...
-        <kbd className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
+        <Search className="pointer-events-none absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 text-muted-foreground sm:left-2.5 sm:translate-x-0" />
+        <span className="hidden sm:inline">Search content, tags, titles...</span>
+        <kbd className="pointer-events-none absolute top-1/2 right-2.5 hidden -translate-y-1/2 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground sm:block">
           ⌘K
         </kbd>
       </button>
@@ -52,7 +53,13 @@ export function TopBar({ itemTypes, collections }: TopBarProps) {
         >
           <Star />
         </Button>
-        <Button variant="ghost" size="icon" aria-label="Notifications">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Notifications"
+          title="Notifications coming soon"
+          disabled
+        >
           <Bell />
         </Button>
         <NewCollectionDialog />

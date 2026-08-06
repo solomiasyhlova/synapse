@@ -45,7 +45,11 @@ export function Footer() {
               Company
             </h4>
             {COMPANY_LINKS.map((label) => (
-              <span key={label} className="text-sm text-muted-foreground/70">
+              <span
+                key={label}
+                title="Coming soon"
+                className="cursor-default text-sm text-muted-foreground/40"
+              >
                 {label}
               </span>
             ))}
@@ -56,7 +60,11 @@ export function Footer() {
               Legal
             </h4>
             {LEGAL_LINKS.map((label) => (
-              <span key={label} className="text-sm text-muted-foreground/70">
+              <span
+                key={label}
+                title="Coming soon"
+                className="cursor-default text-sm text-muted-foreground/40"
+              >
                 {label}
               </span>
             ))}
