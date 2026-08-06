@@ -6,13 +6,11 @@ Not Started
 
 ## Goals
 
-<!-- Bullet points of what success looks like -->
-
 ## Notes
 
-<!-- Additional context, constraints, or details from spec -->
-
 ## History
+
+- Recent Page: fixed the dead "Recent" sidebar nav link (`/recent` had no matching route) found during a UI review, by building the "Recently used" feature listed in project-overview.md section 3E but never implemented. New protected `/recent` route (src/app/(app)/recent/page.tsx, added to proxy.ts's matcher) mirrors `/favorites`' layout — a dense monospace list split into Items/Collections sections, no sort controls since "recent" is inherently date-sorted. Reuses existing `getRecentItems`/`getRecentCollections` (src/lib/db/items.ts, src/lib/db/collections.ts) via a new `RecentList.tsx` component, called with a new `RECENT_PAGE_LIMIT` (50, src/lib/constants.ts) instead of the small dashboard-preview limits. Clicking an item opens the existing `ItemDrawer`, clicking a collection navigates to `/collections/[id]`, same as Favorites. A second bug flagged in the same review (mobile sidebar drawer appearing non-functional) did not reproduce across three retests — false positive from test flakiness in that session, no fix made.
 
 <!-- Keep this updated. Earliest to latest -->
 
