@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
@@ -18,8 +18,8 @@ export function Logo() {
     >
       {!isCollapsed && (
         <>
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-            <Plus className="size-4" />
+          <span className="text-lg text-[#6366f1]" aria-hidden="true">
+            ◆
           </span>
           <span className="flex-1 font-semibold">Synapse</span>
         </>

@@ -1,7 +1,5 @@
 "use client";
 
-import { Plus } from "lucide-react";
-
 import { SidebarContent, type SidebarUser } from "@/components/dashboard/Sidebar";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
 import {
@@ -32,8 +30,8 @@ export function MobileSidebar({
     <Sheet open={isMobileOpen} onOpenChange={setMobileOpen}>
       <SheetContent side="left" className="w-72 gap-0 p-0">
         <SheetHeader className="flex-row items-center gap-2 border-b border-border">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-            <Plus className="size-4" />
+          <span className="text-lg text-[#6366f1]" aria-hidden="true">
+            ◆
           </span>
           <SheetTitle>Synapse</SheetTitle>
         </SheetHeader>
