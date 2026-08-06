@@ -72,11 +72,11 @@ export function ItemCard({ item }: { item: ItemWithType }) {
         style={{ borderLeftColor: type.color }}
       >
         <CardHeader>
-          <CardTitle className="flex items-center gap-1.5 text-base">
+          <CardTitle className="flex min-w-0 items-center gap-1.5 text-base">
             <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted">
               <TypeIcon name={type.icon} className="size-3.5" style={{ color: type.color }} />
             </span>
-            <span className="truncate">{item.title}</span>
+            <span className="min-w-0 flex-1 truncate">{item.title}</span>
             {item.isPinned && <Pin className="size-3.5 shrink-0 text-muted-foreground" />}
             <Button
               variant="ghost"
