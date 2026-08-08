@@ -13,7 +13,6 @@ import { useSidebar } from "@/components/dashboard/sidebar-context";
 import type { CollectionWithStats } from "@/lib/db/collections";
 import type { ItemTypeWithCount } from "@/lib/db/items";
 import { typeNameToSlug } from "@/lib/item-type-slug";
-import { currentUser } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -57,6 +56,7 @@ export interface SidebarUser {
   name: string;
   email: string;
   image?: string | null;
+  isPro: boolean;
 }
 
 interface SidebarContentProps {
@@ -116,7 +116,7 @@ export function SidebarContent({
           )}
           <nav className={cn("space-y-0.5", !collapsed && !isTypesOpen && "hidden")}>
             {itemTypes.map((type) => {
-              const isLocked = (type.name === "file" || type.name === "image") && !currentUser.isPro;
+              const isLocked = (type.name === "file" || type.name === "image") && !user.isPro;
               const href = `/items/${typeNameToSlug(type.name)}`;
               const isActive = pathname === href;
               return (
@@ -226,7 +226,7 @@ export function SidebarContent({
       </div>
 
       <div className="space-y-2 border-t border-border p-2">
-        {!currentUser.isPro && !collapsed && (
+        {!user.isPro && !collapsed && (
           <div className="rounded-lg border border-border bg-muted/40 p-3">
             <p className="text-sm font-medium">Upgrade to Pro</p>
             <p className="text-xs text-muted-foreground">

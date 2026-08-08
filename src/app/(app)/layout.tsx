@@ -50,6 +50,7 @@ export default async function DashboardLayout({
     name: session.user.name ?? "Unknown user",
     email: session.user.email ?? "",
     image: session.user.image,
+    isPro: session.user.isPro,
   };
 
   return (

@@ -1,12 +1,28 @@
-# Current Feature
+# Current Feature: Stripe Integration Phase 1 - Core Infrastructure
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Add a Stripe SDK singleton (`src/lib/stripe.ts`) ready for Phase 2 to import, plus `"stripe"` as a `package.json` dependency (latest version, no `@stripe/stripe-js`)
+- Add DB helpers for reading/writing a user's billing fields (`src/lib/db/billing.ts`: `getUserBilling`, `getUserByStripeCustomerId`, `setUserSubscription`)
+- Fix the pre-existing bug where `isPro` never enters the JWT/session — `src/auth.ts` `jwt` callback re-reads `isPro` from the DB on every token refresh (not just sign-in), copied into the session via the existing `session` callback
+- Add `isPro: boolean` to the `Session.user`/`JWT` type augmentations (`src/types/next-auth.d.ts`)
+- Sidebar and MobileSidebar read real `session.user.isPro` (via the `(app)` layout's `user` object) instead of `currentUser.isPro` from `mock-data` — lock badges on file/image nav items and the "Upgrade to Pro" card both driven by the real value; MobileSidebar currently has neither and needs the same treatment added
+- Add a standalone, pure `src/lib/usage-limits.ts` module encoding free-tier rules (`FREE_ITEM_LIMIT = 50`, `FREE_COLLECTION_LIMIT = 3`, `PRO_ONLY_TYPE_NAMES = ["file", "image"]`, `isProOnlyType`, `canCreateItem`, `canCreateCollection`) — no Prisma/DB/session imports, framework-free so it's unit-testable and reusable by Phase 2's gating
+- Full unit test coverage for `usage-limits.ts` (`src/lib/usage-limits.test.ts`) covering every boundary case listed in the spec
+
 ## Notes
+
+- Explicitly out of scope for this phase: checkout, webhooks, any billing UI, and wiring `usage-limits.ts` into `createItem`/`createCollection` (all Phase 2)
+- Pro status for manual testing is flipped by hand via Neon MCP `run_sql` on the `development` branch only (never `production`) — no Stripe CLI/account needed for this phase
+- Key gotcha: the JWT won't pick up a DB-side `isPro` change without an unconditional re-fetch in the `jwt` callback, since there's no `trigger === "update"` call anywhere in the app
+- `.env.example` already has all five `STRIPE_*` vars stubbed (uncommitted working-tree change) — include it in this phase's commit since `stripe.ts` reads `STRIPE_SECRET_KEY`/`STRIPE_PUBLISHABLE_KEY`; `STRIPE_PRICE_ID_MONTHLY`/`STRIPE_PRICE_ID_YEARLY` also read by `stripe.ts`'s `STRIPE_PRICES`; `STRIPE_WEBHOOK_SECRET` stays unused until Phase 2
+- Fetch the current `stripe` npm package's `apiVersion` string via context7 before pinning it in `stripe.ts`
+- Full context, rationale, and code samples: `docs/stripe-integration-plan.md` (§1, §3, §4.1-4.3) and `context/research/stripe-integration-research.md` (JWT sync rationale)
+- Testing: `npm run test` (usage-limits boundary cases) + `npm run build` (type augmentations, new dependency), then manual Neon MCP `isPro` flip + reload to confirm Sidebar/MobileSidebar update without sign-out/sign-in
 
 ## History
 
