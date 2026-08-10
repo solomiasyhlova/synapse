@@ -1,8 +1,9 @@
 import { notFound, redirect } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Lock, Plus } from "lucide-react";
 
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
+import { PlanCard } from "@/components/billing/PlanCard";
 import { CreateItemDialog } from "@/components/dashboard/CreateItemDialog";
 import { FileListRow } from "@/components/dashboard/FileListRow";
 import { ImageCard } from "@/components/dashboard/ImageCard";
@@ -12,6 +13,7 @@ import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { getAllCollections } from "@/lib/db/collections";
 import { getItemsByType, getItemTypeByName, getSystemItemTypes } from "@/lib/db/items";
 import { slugToTypeName } from "@/lib/item-type-slug";
+import { isProOnlyType } from "@/lib/usage-limits";
 
 export default async function ItemsByTypePage({
   params,
@@ -29,6 +31,25 @@ export default async function ItemsByTypePage({
 
   const userId = session.user.id;
   const typeName = slugToTypeName(slug);
+
+  if (isProOnlyType(typeName) && !session.user.isPro) {
+    return (
+      <main className="flex flex-1 items-center justify-center overflow-y-auto p-6">
+        <div className="w-full max-w-sm space-y-6 text-center">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted">
+            <Lock className="size-5 text-muted-foreground" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold capitalize">{slug} are a Pro feature</h1>
+            <p className="text-sm text-muted-foreground">
+              Upgrade to Pro to upload and organize {typeName}s.
+            </p>
+          </div>
+          <PlanCard isPro={false} interval={null} currentPeriodEnd={null} showUsage={false} />
+        </div>
+      </main>
+    );
+  }
 
   const itemType = await getItemTypeByName(userId, typeName);
   if (!itemType) notFound();
