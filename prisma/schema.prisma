@@ -21,9 +21,11 @@ model User {
   editorPreferences Json? // EditorPreferences shape — see src/lib/editor-preferences.ts
 
   // Billing
-  isPro                Boolean @default(false)
-  stripeCustomerId     String? @unique
-  stripeSubscriptionId String? @unique
+  isPro                  Boolean   @default(false)
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String? // which price (monthly/yearly) they're on
+  stripeCurrentPeriodEnd DateTime? // paid-through date; keeps isPro true through a canceled-but-paid period
 
   // Relations
   accounts    Account[]

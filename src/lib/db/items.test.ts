@@ -135,16 +135,60 @@ describe("getItemsByCollection", () => {
 });
 
 describe("createItem", () => {
-  it("returns null when the item type isn't found", async () => {
+  it("returns a rejection when the item type isn't found", async () => {
     itemTypeFindFirst.mockResolvedValueOnce(null);
 
-    const result = await createItem("user-1", "snippet", {
-      title: "New snippet",
-      tags: [],
-      collectionIds: [],
-    });
+    const result = await createItem(
+      "user-1",
+      "snippet",
+      { title: "New snippet", tags: [], collectionIds: [] },
+      false,
+    );
 
-    expect(result).toBeNull();
+    expect(result.item).toBeNull();
+    expect(result.error).toBe("Item type not found");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a free user who has hit the item limit, without creating", async () => {
+    itemTypeFindFirst.mockResolvedValueOnce({
+      id: "type-1",
+      name: "snippet",
+      icon: "Code",
+      color: "#3b82f6",
+    });
+    count.mockResolvedValueOnce(50);
+
+    const result = await createItem(
+      "user-1",
+      "snippet",
+      { title: "One too many", tags: [], collectionIds: [] },
+      false,
+    );
+
+    expect(result.item).toBeNull();
+    expect(result.error).toMatch(/50-item limit/);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a free user creating a Pro-only type (file/image), even with room under the item limit", async () => {
+    itemTypeFindFirst.mockResolvedValueOnce({
+      id: "type-4",
+      name: "file",
+      icon: "File",
+      color: "#6b7280",
+    });
+    count.mockResolvedValueOnce(0);
+
+    const result = await createItem(
+      "user-1",
+      "file",
+      { title: "Doc", tags: [], collectionIds: [] },
+      false,
+    );
+
+    expect(result.item).toBeNull();
+    expect(result.error).toMatch(/Pro feature/);
     expect(create).not.toHaveBeenCalled();
   });
 
@@ -155,6 +199,7 @@ describe("createItem", () => {
       icon: "Code",
       color: "#3b82f6",
     });
+    count.mockResolvedValueOnce(0);
     create.mockResolvedValueOnce({
       id: "item-1",
       title: "New snippet",
@@ -175,13 +220,18 @@ describe("createItem", () => {
       collections: [],
     });
 
-    const result = await createItem("user-1", "snippet", {
-      title: "New snippet",
-      content: "console.log('hi')",
-      language: "typescript",
-      tags: ["js"],
-      collectionIds: [],
-    });
+    const result = await createItem(
+      "user-1",
+      "snippet",
+      {
+        title: "New snippet",
+        content: "console.log('hi')",
+        language: "typescript",
+        tags: ["js"],
+        collectionIds: [],
+      },
+      false,
+    );
 
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -200,7 +250,7 @@ describe("createItem", () => {
         }),
       }),
     );
-    expect(result?.collections).toEqual([]);
+    expect(result.item?.collections).toEqual([]);
   });
 
   it("only links collections owned by the user, ignoring ids that don't belong to them", async () => {
@@ -210,6 +260,7 @@ describe("createItem", () => {
       icon: "Code",
       color: "#3b82f6",
     });
+    count.mockResolvedValueOnce(0);
     collectionFindMany.mockResolvedValueOnce([{ id: "col-1" }]);
     create.mockResolvedValueOnce({
       id: "item-1",
@@ -231,11 +282,12 @@ describe("createItem", () => {
       collections: [{ collection: { id: "col-1", name: "React Patterns" } }],
     });
 
-    await createItem("user-1", "snippet", {
-      title: "New snippet",
-      tags: [],
-      collectionIds: ["col-1", "not-owned"],
-    });
+    await createItem(
+      "user-1",
+      "snippet",
+      { title: "New snippet", tags: [], collectionIds: ["col-1", "not-owned"] },
+      false,
+    );
 
     expect(collectionFindMany).toHaveBeenCalledWith({
       where: { id: { in: ["col-1", "not-owned"] }, userId: "user-1" },
@@ -257,6 +309,7 @@ describe("createItem", () => {
       icon: "Link",
       color: "#10b981",
     });
+    count.mockResolvedValueOnce(0);
     create.mockResolvedValueOnce({
       id: "item-2",
       title: "Docs",
@@ -277,12 +330,12 @@ describe("createItem", () => {
       collections: [],
     });
 
-    await createItem("user-1", "link", {
-      title: "Docs",
-      url: "https://example.com",
-      tags: [],
-      collectionIds: [],
-    });
+    await createItem(
+      "user-1",
+      "link",
+      { title: "Docs", url: "https://example.com", tags: [], collectionIds: [] },
+      false,
+    );
 
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -298,6 +351,7 @@ describe("createItem", () => {
       icon: "Image",
       color: "#ec4899",
     });
+    count.mockResolvedValueOnce(0);
     create.mockResolvedValueOnce({
       id: "item-3",
       title: "Diagram",
@@ -318,14 +372,19 @@ describe("createItem", () => {
       collections: [],
     });
 
-    await createItem("user-1", "image", {
-      title: "Diagram",
-      fileUrl: "https://files.example.com/diagram.png",
-      fileName: "diagram.png",
-      fileSize: 1024,
-      tags: [],
-      collectionIds: [],
-    });
+    await createItem(
+      "user-1",
+      "image",
+      {
+        title: "Diagram",
+        fileUrl: "https://files.example.com/diagram.png",
+        fileName: "diagram.png",
+        fileSize: 1024,
+        tags: [],
+        collectionIds: [],
+      },
+      true,
+    );
 
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({

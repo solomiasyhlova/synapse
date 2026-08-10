@@ -25,9 +25,12 @@ export async function createCollection(data: unknown): Promise<ActionResult> {
 
     const validData = await createCollectionSchema.parseAsync(data);
 
-    const created = await createCollectionQuery(session.user.id, validData);
+    const outcome = await createCollectionQuery(session.user.id, validData, session.user.isPro);
+    if (!outcome.collection) {
+      return { success: false, error: outcome.error ?? "Something went wrong. Please try again." };
+    }
 
-    return { success: true, data: created };
+    return { success: true, data: outcome.collection };
   } catch (error) {
     if (error instanceof ZodError) {
       return { success: false, error: error.issues[0]?.message ?? "Invalid input" };

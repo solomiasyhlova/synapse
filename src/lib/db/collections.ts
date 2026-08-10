@@ -2,6 +2,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { COLLECTIONS_PER_PAGE, DASHBOARD_COLLECTIONS_LIMIT } from "@/lib/constants";
 import { paginationSkip, toPaginatedResult, type PaginatedResult } from "@/lib/pagination";
 import { prisma } from "@/lib/prisma";
+import { canCreateCollection } from "@/lib/usage-limits";
 
 export interface CollectionItemType {
   id: string;
@@ -143,10 +144,20 @@ export async function getCollectionById(
   });
 }
 
+export interface CreateCollectionOutcome {
+  collection: CollectionWithStats | null;
+  error?: string;
+}
+
 export async function createCollection(
   userId: string,
   data: { name: string; description?: string | null },
-): Promise<CollectionWithStats> {
+  isPro: boolean,
+): Promise<CreateCollectionOutcome> {
+  const collectionCount = await prisma.collection.count({ where: { userId } });
+  const limitCheck = canCreateCollection(isPro, collectionCount);
+  if (!limitCheck.allowed) return { collection: null, error: limitCheck.reason };
+
   const collection = await prisma.collection.create({
     data: {
       userId,
@@ -156,14 +167,16 @@ export async function createCollection(
   });
 
   return {
-    id: collection.id,
-    name: collection.name,
-    description: collection.description,
-    isFavorite: collection.isFavorite,
-    itemCount: 0,
-    updatedAt: collection.updatedAt,
-    accentColor: null,
-    types: [],
+    collection: {
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      isFavorite: collection.isFavorite,
+      itemCount: 0,
+      updatedAt: collection.updatedAt,
+      accentColor: null,
+      types: [],
+    },
   };
 }
 

@@ -29,7 +29,18 @@ const collectionRow = (id: string) => ({
 });
 
 describe("createCollection", () => {
+  it("rejects a free user who has hit the collection limit, without creating", async () => {
+    count.mockResolvedValueOnce(3);
+
+    const result = await createCollection("user-1", { name: "One too many" }, false);
+
+    expect(result.collection).toBeNull();
+    expect(result.error).toMatch(/3-collection limit/);
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it("creates the collection scoped to the user and returns fresh stats", async () => {
+    count.mockResolvedValueOnce(0);
     create.mockResolvedValueOnce({
       id: "col-1",
       name: "React Patterns",
@@ -37,10 +48,11 @@ describe("createCollection", () => {
       isFavorite: false,
     });
 
-    const result = await createCollection("user-1", {
-      name: "React Patterns",
-      description: "Snippets and notes for React.",
-    });
+    const result = await createCollection(
+      "user-1",
+      { name: "React Patterns", description: "Snippets and notes for React." },
+      false,
+    );
 
     expect(create).toHaveBeenCalledWith({
       data: {
@@ -49,7 +61,7 @@ describe("createCollection", () => {
         description: "Snippets and notes for React.",
       },
     });
-    expect(result).toEqual({
+    expect(result.collection).toEqual({
       id: "col-1",
       name: "React Patterns",
       description: "Snippets and notes for React.",
@@ -61,6 +73,7 @@ describe("createCollection", () => {
   });
 
   it("defaults a missing description to null", async () => {
+    count.mockResolvedValueOnce(0);
     create.mockResolvedValueOnce({
       id: "col-2",
       name: "Untitled",
@@ -68,11 +81,26 @@ describe("createCollection", () => {
       isFavorite: false,
     });
 
-    await createCollection("user-1", { name: "Untitled" });
+    await createCollection("user-1", { name: "Untitled" }, false);
 
     expect(create).toHaveBeenCalledWith({
       data: { userId: "user-1", name: "Untitled", description: null },
     });
+  });
+
+  it("allows a Pro user past the free collection limit", async () => {
+    count.mockResolvedValueOnce(10);
+    create.mockResolvedValueOnce({
+      id: "col-3",
+      name: "Yet Another",
+      description: null,
+      isFavorite: false,
+    });
+
+    const result = await createCollection("user-1", { name: "Yet Another" }, true);
+
+    expect(result.collection).not.toBeNull();
+    expect(create).toHaveBeenCalled();
   });
 });
 

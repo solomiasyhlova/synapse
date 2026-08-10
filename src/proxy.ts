@@ -13,6 +13,7 @@ export const config = {
     "/dashboard/:path*",
     "/profile",
     "/settings",
+    "/billing",
     "/items/:path*",
     "/collections/:path*",
     "/favorites",

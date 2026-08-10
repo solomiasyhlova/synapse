@@ -1,12 +1,27 @@
-# Current Feature
+# Current Feature: Stripe Integration Phase 2 - Integration & UI
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Stripe webhook route (`/api/webhooks/stripe`) handling `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, verified via `stripe-signature` — missing/invalid signature returns 400 with no DB write
+- `createCheckoutSession(interval)` / `createPortalSession()` Server Actions (`src/actions/billing.ts`) that create a Stripe customer on first checkout if needed and `redirect()` to Stripe-hosted pages
+- `/billing` page (protected, same shape as `/settings`) showing current plan + upgrade (monthly/yearly toggle, reusing `PricingToggle.tsx`'s pattern) or manage-subscription entry point, via new `PlanCard.tsx`
+- `createItem`/`createCollection` reject over-limit or Pro-only requests **server-side** in the query layer (`src/lib/db/items.ts`/`collections.ts`), using Phase 1's `usage-limits.ts` (`canCreateItem`, `canCreateCollection`, `isProOnlyType`) — not duplicated logic, and using a live Prisma count, not a cached one
+- Gate must hold even when the Server Action is called directly, bypassing the UI
+
 ## Notes
+
+- **Requires Phase 1 merged first** (`stripe-integration-phase-1-spec.md` — `usage-limits.ts`, `isPro` session/jwt wiring). Also requires a Stripe test-mode account + `stripe listen --forward-to localhost:3000/api/webhooks/stripe` running locally for webhook testing; nothing here is fully testable without it.
+- Full context/code samples: `docs/stripe-integration-plan.md` (§2 gating table, §3 webhook/action code samples, §5 dashboard setup, §6 testing checklist, §7 implementation order).
+- **Manual prerequisite (one-time, Stripe dashboard, test mode):** one product ("DevStash Pro") with two recurring prices ($8/mo, $72/yr) → `STRIPE_PRICE_ID_MONTHLY`/`STRIPE_PRICE_ID_YEARLY`; test Secret/Publishable keys → `STRIPE_SECRET_KEY`/`STRIPE_PUBLISHABLE_KEY`; enable Customer Portal (cancel, payment method update, monthly↔yearly switch); `stripe listen` signing secret → `STRIPE_WEBHOOK_SECRET`.
+- **Decided:** including the optional `stripePriceId String?` / `stripeCurrentPeriodEnd DateTime?` columns on `User` (plan doc §4.1) so a canceled subscription stays Pro until the paid period actually ends, rather than flipping `isPro` false immediately on cancellation. This changes `setUserSubscription`'s signature and the `customer.subscription.updated` webhook branch. Migrate via `npm run db:migrate` on `development` only, never `db push`.
+- Only the webhook is a route handler (needs the raw body for signature verification); checkout/portal are Server Actions per `coding-standards.md`. Webhook itself has no auth check — signature verification is the only guard.
+- `src/proxy.ts` needs `"/billing"` added to the protected matcher.
+- Files to create: `src/app/api/webhooks/stripe/route.ts`, `src/actions/billing.ts`, `src/app/billing/page.tsx`, `src/components/billing/PlanCard.tsx`.
+- Files to modify: `src/lib/db/items.ts`, `src/actions/items.ts`, `src/lib/db/collections.ts`, `src/actions/collections.ts`, `src/proxy.ts`, optionally `prisma/schema.prisma`.
 
 ## History
 

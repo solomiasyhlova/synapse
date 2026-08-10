@@ -32,23 +32,28 @@ export async function createItem(data: unknown): Promise<ActionResult> {
 
     const validData = await createItemSchema.parseAsync(data);
 
-    const created = await createItemQuery(session.user.id, validData.typeName, {
-      title: validData.title,
-      description: validData.description,
-      content: validData.content,
-      url: validData.url,
-      language: validData.language,
-      fileUrl: validData.fileUrl,
-      fileName: validData.fileName,
-      fileSize: validData.fileSize,
-      tags: validData.tags,
-      collectionIds: validData.collectionIds,
-    });
-    if (!created) {
-      return { success: false, error: "Item type not found" };
+    const outcome = await createItemQuery(
+      session.user.id,
+      validData.typeName,
+      {
+        title: validData.title,
+        description: validData.description,
+        content: validData.content,
+        url: validData.url,
+        language: validData.language,
+        fileUrl: validData.fileUrl,
+        fileName: validData.fileName,
+        fileSize: validData.fileSize,
+        tags: validData.tags,
+        collectionIds: validData.collectionIds,
+      },
+      session.user.isPro,
+    );
+    if (!outcome.item) {
+      return { success: false, error: outcome.error ?? "Item type not found" };
     }
 
-    return { success: true, data: created };
+    return { success: true, data: outcome.item };
   } catch (error) {
     if (error instanceof ZodError) {
       return { success: false, error: error.issues[0]?.message ?? "Invalid input" };

@@ -2,6 +2,7 @@ import type { ContentType } from "@/generated/prisma/enums";
 import { DASHBOARD_RECENT_ITEMS_LIMIT, ITEMS_PER_PAGE } from "@/lib/constants";
 import { paginationSkip, toPaginatedResult, type PaginatedResult } from "@/lib/pagination";
 import { prisma } from "@/lib/prisma";
+import { canCreateItem } from "@/lib/usage-limits";
 
 export interface ItemType {
   id: string;
@@ -167,13 +168,23 @@ export interface CreateItemData {
   collectionIds: string[];
 }
 
+export interface CreateItemOutcome {
+  item: ItemDetail | null;
+  error?: string;
+}
+
 export async function createItem(
   userId: string,
   typeName: string,
   data: CreateItemData,
-): Promise<ItemDetail | null> {
+  isPro: boolean,
+): Promise<CreateItemOutcome> {
   const itemType = await getItemTypeByName(userId, typeName);
-  if (!itemType) return null;
+  if (!itemType) return { item: null, error: "Item type not found" };
+
+  const itemCount = await prisma.item.count({ where: { userId } });
+  const limitCheck = canCreateItem(isPro, itemCount, typeName);
+  if (!limitCheck.allowed) return { item: null, error: limitCheck.reason };
 
   const collectionIds = await resolveOwnedCollectionIds(userId, data.collectionIds);
 
@@ -204,8 +215,10 @@ export async function createItem(
   });
 
   return {
-    ...item,
-    collections: item.collections.map(({ collection }) => collection),
+    item: {
+      ...item,
+      collections: item.collections.map(({ collection }) => collection),
+    },
   };
 }
 
