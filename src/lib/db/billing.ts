@@ -21,6 +21,20 @@ export async function getUserBilling(userId: string): Promise<UserBilling | null
   });
 }
 
+export interface UsageCounts {
+  itemCount: number;
+  collectionCount: number;
+}
+
+export async function getUsageCounts(userId: string): Promise<UsageCounts> {
+  const [itemCount, collectionCount] = await Promise.all([
+    prisma.item.count({ where: { userId } }),
+    prisma.collection.count({ where: { userId } }),
+  ]);
+
+  return { itemCount, collectionCount };
+}
+
 export async function getUserByStripeCustomerId(customerId: string) {
   return prisma.user.findUnique({ where: { stripeCustomerId: customerId } });
 }

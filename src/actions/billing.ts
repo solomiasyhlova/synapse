@@ -40,8 +40,8 @@ export async function createCheckoutSession(interval: BillingInterval): Promise<
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: STRIPE_PRICES[interval], quantity: 1 }],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings`,
       metadata: { userId: session.user.id },
     });
 
@@ -68,7 +68,7 @@ export async function createPortalSession(): Promise<ActionError | void> {
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: billing.stripeCustomerId,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings`,
     });
 
     portalUrl = portalSession.url;

@@ -38,16 +38,19 @@ export function EditorPreferencesForm({ initialPreferences }: EditorPreferencesF
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
-        <label htmlFor="editor-font-size" className="text-sm font-medium">
-          Font size
-        </label>
+    <div className="divide-y divide-border">
+      <div className="flex items-center justify-between gap-4 py-4 first:pt-0">
+        <div>
+          <label htmlFor="editor-font-size" className="text-sm font-medium">
+            Font Size
+          </label>
+          <p className="text-sm text-muted-foreground">Size of text in the code editor</p>
+        </div>
         <Select
           value={String(preferences.fontSize)}
           onValueChange={(value) => void save({ ...preferences, fontSize: Number(value) })}
         >
-          <SelectTrigger id="editor-font-size" size="sm" className="w-24">
+          <SelectTrigger id="editor-font-size" size="sm" className="w-28">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -60,15 +63,18 @@ export function EditorPreferencesForm({ initialPreferences }: EditorPreferencesF
         </Select>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
-        <label htmlFor="editor-tab-size" className="text-sm font-medium">
-          Tab size
-        </label>
+      <div className="flex items-center justify-between gap-4 py-4">
+        <div>
+          <label htmlFor="editor-tab-size" className="text-sm font-medium">
+            Tab Size
+          </label>
+          <p className="text-sm text-muted-foreground">Number of spaces for each tab</p>
+        </div>
         <Select
           value={String(preferences.tabSize)}
           onValueChange={(value) => void save({ ...preferences, tabSize: Number(value) })}
         >
-          <SelectTrigger id="editor-tab-size" size="sm" className="w-24">
+          <SelectTrigger id="editor-tab-size" size="sm" className="w-28">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -81,32 +87,13 @@ export function EditorPreferencesForm({ initialPreferences }: EditorPreferencesF
         </Select>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
-        <label htmlFor="editor-word-wrap" className="text-sm font-medium">
-          Word wrap
-        </label>
-        <Switch
-          id="editor-word-wrap"
-          checked={preferences.wordWrap}
-          onCheckedChange={(checked) => void save({ ...preferences, wordWrap: checked })}
-        />
-      </div>
-
-      <div className="flex items-center justify-between gap-4">
-        <label htmlFor="editor-minimap" className="text-sm font-medium">
-          Minimap
-        </label>
-        <Switch
-          id="editor-minimap"
-          checked={preferences.minimap}
-          onCheckedChange={(checked) => void save({ ...preferences, minimap: checked })}
-        />
-      </div>
-
-      <div className="flex items-center justify-between gap-4">
-        <label htmlFor="editor-theme" className="text-sm font-medium">
-          Theme
-        </label>
+      <div className="flex items-center justify-between gap-4 py-4">
+        <div>
+          <label htmlFor="editor-theme" className="text-sm font-medium">
+            Theme
+          </label>
+          <p className="text-sm text-muted-foreground">Color theme for the code editor</p>
+        </div>
         <Select
           value={preferences.theme}
           onValueChange={(value) => void save({ ...preferences, theme: value as EditorTheme })}
@@ -122,6 +109,34 @@ export function EditorPreferencesForm({ initialPreferences }: EditorPreferencesF
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 py-4">
+        <div>
+          <label htmlFor="editor-word-wrap" className="text-sm font-medium">
+            Word Wrap
+          </label>
+          <p className="text-sm text-muted-foreground">Wrap long lines to fit the editor width</p>
+        </div>
+        <Switch
+          id="editor-word-wrap"
+          checked={preferences.wordWrap}
+          onCheckedChange={(checked) => void save({ ...preferences, wordWrap: checked })}
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-4 py-4 last:pb-0">
+        <div>
+          <label htmlFor="editor-minimap" className="text-sm font-medium">
+            Minimap
+          </label>
+          <p className="text-sm text-muted-foreground">Show code overview on the right side</p>
+        </div>
+        <Switch
+          id="editor-minimap"
+          checked={preferences.minimap}
+          onCheckedChange={(checked) => void save({ ...preferences, minimap: checked })}
+        />
       </div>
     </div>
   );
