@@ -2,11 +2,22 @@
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+Add a clear upgrade path for free users:
+
+- Header gains an "Upgrade" button, visible only to free users, styled as a subtle ghost button (less prominent than the other nav buttons).
+- Clicking it goes to a new `/upgrade` page (not straight to Stripe checkout) that presents Free vs Pro plans similar to the homepage's pricing section, with a monthly/yearly toggle ($8/mo or $72/yr).
+- From `/upgrade`, the user picks a plan and proceeds through the existing Stripe checkout flow (`createCheckoutSession`).
+
 ## Notes
+
+- Reuses the visual pattern of `PricingToggle.tsx` (homepage) for the plan cards/toggle, but wires the Pro CTA to `createCheckoutSession` (like `PlanCard.tsx`) instead of linking to `/register`.
+- Pro users visiting `/upgrade` directly get redirected to `/settings` (nothing to upgrade there).
+- `TopBar` didn't previously receive `isPro`; threading it through from the `(app)` layout.
+- Clicking the File/Image type in the sidebar (`/items/files`, `/items/images`) as a free user now redirects straight to `/upgrade` instead of showing the old inline lock-icon + `PlanCard` prompt on `/items/[type]/page.tsx` (that inline gate is removed).
 
 ## History
 

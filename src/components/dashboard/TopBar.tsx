@@ -14,9 +14,10 @@ import type { ItemTypeWithCount } from "@/lib/db/items";
 interface TopBarProps {
   itemTypes: ItemTypeWithCount[];
   collections: CollectionOption[];
+  isPro: boolean;
 }
 
-export function TopBar({ itemTypes, collections }: TopBarProps) {
+export function TopBar({ itemTypes, collections, isPro }: TopBarProps) {
   const { setMobileOpen } = useSidebar();
   const { setOpen: setSearchOpen } = useGlobalSearch();
 
@@ -44,6 +45,16 @@ export function TopBar({ itemTypes, collections }: TopBarProps) {
         </kbd>
       </button>
       <div className="ml-auto flex items-center gap-2">
+        {!isPro && (
+          <Button
+            render={<Link href="/upgrade" />}
+            nativeButton={false}
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Upgrade
+          </Button>
+        )}
         <Button
           render={<Link href="/favorites" />}
           nativeButton={false}

@@ -61,7 +61,7 @@ export default async function DashboardLayout({
             <div className="flex min-h-0 flex-1 flex-col">
               <header className="flex h-14 shrink-0 items-center border-b border-border">
                 <Logo />
-                <TopBar itemTypes={itemTypes} collections={collections} />
+                <TopBar itemTypes={itemTypes} collections={collections} isPro={user.isPro} />
               </header>
               <div className="flex min-h-0 flex-1">
                 <Sidebar
