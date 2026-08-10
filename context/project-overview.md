@@ -414,15 +414,20 @@ Items are addressed by type, e.g. `/items/snippets`.
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Dashboard — grid of collection cards + recent items |
-| `/items/[type]` | All items of a type (e.g. `/items/snippets`) |
-| `/items/[type]/[id]` | Direct link to a single item (also opens in drawer) |
+| `/` | Public marketing homepage (signed-in users are redirected to `/dashboard`) |
+| `/dashboard` | Dashboard — grid of collection cards + recent items |
+| `/items/[type]` | All items of a type (e.g. `/items/snippets`); items open in a drawer, not a separate page |
 | `/collections` | All collections |
 | `/collections/[id]` | Items within a collection |
-| `/search` | Search results |
-| `/settings` | Account, theme, export |
-| `/billing` | Plan + Stripe management |
+| `/favorites` | Favorited items and collections |
+| `/recent` | Recently used items and collections |
+| `/profile` | Profile info and usage stats |
+| `/settings` | Account, editor preferences, and billing (plan + Stripe management) |
+| `/upgrade` | Pro plan pricing and checkout entry point |
+| `/sign-in`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email` | Auth pages |
 | `/api/*` | Route handlers (items, uploads, AI, webhooks) |
+
+Search has no dedicated page — it's a Cmd+K / Ctrl+K command palette available app-wide. `/billing` still exists as a bare redirect to `/settings` for old links.
 
 ---
 
