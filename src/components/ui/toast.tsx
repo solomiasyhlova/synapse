@@ -11,7 +11,7 @@ function ToastList() {
 
   return (
     <ToastPrimitive.Portal>
-      <ToastPrimitive.Viewport className="fixed right-4 bottom-4 z-50 flex w-[calc(100vw-2rem)] flex-col gap-2 sm:w-90">
+      <ToastPrimitive.Viewport className="fixed right-4 bottom-4 z-100 flex w-[calc(100vw-2rem)] flex-col gap-2 sm:w-90">
         {toasts.map((toast) => (
           <ToastPrimitive.Root
             key={toast.id}
