@@ -20,9 +20,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { CollectionSelect, type CollectionOption } from "@/components/dashboard/CollectionSelect";
 import { FileUpload, type UploadedFile } from "@/components/dashboard/FileUpload";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
+import { LanguageSelect } from "@/components/dashboard/LanguageSelect";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import type { ItemTypeWithCount } from "@/lib/db/items";
 import { CONTENT_TYPES, FILE_TYPES, LANGUAGE_TYPES } from "@/lib/item-type-kinds";
+import { DEFAULT_LANGUAGE } from "@/lib/languages";
 import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +32,7 @@ const EMPTY_FORM = {
   title: "",
   description: "",
   content: "",
-  language: "",
+  language: DEFAULT_LANGUAGE,
   url: "",
   tags: "",
   file: null as UploadedFile | null,
@@ -182,6 +184,19 @@ export function CreateItemDialog({
             />
           </div>
 
+          {LANGUAGE_TYPES.includes(typeName) && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="create-item-language" className="text-sm font-medium">
+                Language
+              </label>
+              <LanguageSelect
+                id="create-item-language"
+                value={form.language}
+                onChange={(language) => setForm({ ...form, language })}
+              />
+            </div>
+          )}
+
           {CONTENT_TYPES.includes(typeName) && (
             <div className="flex flex-col gap-1.5">
               <label htmlFor="create-item-content" className="text-sm font-medium">
@@ -193,21 +208,6 @@ export function CreateItemDialog({
                 value={form.content}
                 language={form.language}
                 onChange={(content) => setForm({ ...form, content })}
-              />
-            </div>
-          )}
-
-          {LANGUAGE_TYPES.includes(typeName) && (
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="create-item-language" className="text-sm font-medium">
-                Language
-                <span className="ml-1 font-normal text-muted-foreground">(optional)</span>
-              </label>
-              <Input
-                id="create-item-language"
-                value={form.language}
-                onChange={(e) => setForm({ ...form, language: e.target.value })}
-                placeholder="e.g. typescript"
               />
             </div>
           )}
