@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CollectionSelect, type CollectionOption } from "@/components/dashboard/CollectionSelect";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
+import { LanguageSelect } from "@/components/dashboard/LanguageSelect";
 import type { ItemDetail } from "@/lib/db/items";
 import { formatDate } from "@/lib/format";
 import { CONTENT_TYPES, LANGUAGE_TYPES } from "@/lib/item-type-kinds";
+import { DEFAULT_LANGUAGE } from "@/lib/languages";
 
 export interface EditState {
   title: string;
@@ -24,7 +26,7 @@ export function toEditState(item: ItemDetail): EditState {
     title: item.title,
     description: item.description ?? "",
     content: item.content ?? "",
-    language: item.language ?? "",
+    language: item.language ?? DEFAULT_LANGUAGE,
     url: item.url ?? "",
     tags: item.tags.map((tag) => tag.name).join(", "),
     collectionIds: item.collections.map((collection) => collection.id),
@@ -63,6 +65,19 @@ export function ItemDrawerEditForm({ item, edit, onChange, collections }: ItemDr
         />
       </section>
 
+      {LANGUAGE_TYPES.includes(item.itemType.name) && (
+        <section className="space-y-1.5">
+          <label htmlFor="item-language" className="text-xs font-medium text-muted-foreground">
+            Language
+          </label>
+          <LanguageSelect
+            id="item-language"
+            value={edit.language}
+            onChange={(language) => onChange({ ...edit, language })}
+          />
+        </section>
+      )}
+
       {CONTENT_TYPES.includes(item.itemType.name) && (
         <section className="space-y-1.5">
           <label htmlFor="item-content" className="text-xs font-medium text-muted-foreground">
@@ -75,19 +90,6 @@ export function ItemDrawerEditForm({ item, edit, onChange, collections }: ItemDr
             language={edit.language}
             onChange={(content) => onChange({ ...edit, content })}
             textareaClassName="min-h-32"
-          />
-        </section>
-      )}
-
-      {LANGUAGE_TYPES.includes(item.itemType.name) && (
-        <section className="space-y-1.5">
-          <label htmlFor="item-language" className="text-xs font-medium text-muted-foreground">
-            Language
-          </label>
-          <Input
-            id="item-language"
-            value={edit.language}
-            onChange={(e) => onChange({ ...edit, language: e.target.value })}
           />
         </section>
       )}

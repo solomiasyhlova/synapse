@@ -7,6 +7,7 @@ import type { Monaco, OnMount } from "@monaco-editor/react";
 
 import { useEditorPreferences } from "@/components/dashboard/editor-preferences-context";
 import type { EditorTheme } from "@/lib/editor-preferences";
+import { getLanguageLabel } from "@/lib/languages";
 import { cn } from "@/lib/utils";
 
 const Editor = dynamic(() => import("@monaco-editor/react").then((mod) => mod.Editor), {
@@ -148,7 +149,7 @@ export function CodeEditor({ value, language, readOnly = false, onChange, classN
         </div>
         <div className="flex items-center gap-3">
           {language && (
-            <span className="font-mono text-xs text-zinc-400">{language}</span>
+            <span className="font-mono text-xs text-zinc-400">{getLanguageLabel(language)}</span>
           )}
           <button
             type="button"
