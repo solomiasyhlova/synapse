@@ -16,13 +16,15 @@ import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 import type { CollectionOption } from "@/lib/db/collections";
 import type { ItemDetail } from "@/lib/db/items";
 import { CONTENT_TYPES, LANGUAGE_TYPES } from "@/lib/item-type-kinds";
+import { parseTagsInput } from "@/lib/tags";
 import { toastManager } from "@/lib/toast";
 
 interface ItemDrawerProps {
   collections: CollectionOption[];
+  isPro: boolean;
 }
 
-export function ItemDrawer({ collections }: ItemDrawerProps) {
+export function ItemDrawer({ collections, isPro }: ItemDrawerProps) {
   const router = useRouter();
   const { openItemId, isOpen, close } = useItemDrawer();
   const [item, setItem] = useState<ItemDetail | null>(null);
@@ -87,10 +89,7 @@ export function ItemDrawer({ collections }: ItemDrawerProps) {
       content: isContentType ? edit.content : null,
       language: isLanguageType ? edit.language.trim() || null : null,
       url: isUrlType ? edit.url.trim() || null : null,
-      tags: edit.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags: parseTagsInput(edit.tags),
       collectionIds: edit.collectionIds,
     });
 
@@ -217,6 +216,7 @@ export function ItemDrawer({ collections }: ItemDrawerProps) {
             edit={edit}
             onChange={setEdit}
             collections={collections}
+            isPro={isPro}
           />
         ) : item ? (
           <ItemDrawerView item={item} />

@@ -60,6 +60,7 @@ export default async function ItemsByTypePage({
           itemTypes={itemTypes}
           collections={collections}
           defaultTypeName={typeName}
+          isPro={session.user.isPro}
           trigger={
             <Button className="ml-auto">
               <Plus />

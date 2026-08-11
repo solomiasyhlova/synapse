@@ -79,7 +79,7 @@ export default async function DashboardLayout({
               recentCollections={recentCollections}
               user={user}
             />
-            <ItemDrawer collections={collections} />
+            <ItemDrawer collections={collections} isPro={user.isPro} />
             <GlobalSearch items={searchableItems} collections={allCollections} />
           </GlobalSearchProvider>
         </ItemDrawerProvider>

@@ -74,7 +74,7 @@ export function TopBar({ itemTypes, collections, isPro }: TopBarProps) {
           <Bell />
         </Button>
         <NewCollectionDialog />
-        <CreateItemDialog itemTypes={itemTypes} collections={collections} />
+        <CreateItemDialog itemTypes={itemTypes} collections={collections} isPro={isPro} />
       </div>
     </div>
   );

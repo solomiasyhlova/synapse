@@ -1,12 +1,31 @@
-# Current Feature
+# Current Feature: AI Auto-Tagging
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Establish the Gemini foundation (client util, `AI_MODEL` constant, server action pattern, rate limit config) if not already present from a prior AI feature
+- Add a "Suggest Tags" button (Sparkles icon, ghost variant) near the tags input in the create item dialog and item drawer edit mode, Pro-only and hidden for free users
+- `generateAutoTags` server action: auth-checked, Pro-gated, Zod-validated, rate-limited (20 req/hour/user)
+- Gemini returns 3-5 freeform tag suggestions from the item's title + content (truncated to 2000 chars)
+- Suggestions render as badges with per-tag accept (check) / reject (X) controls; accepted tags are added to the item's tag list
+- Tags are freeform, not restricted to existing DB tags
+- Graceful error handling via toast for Pro gating, rate limiting, and AI service errors (including Gemini 429 RESOURCE_EXHAUSTED)
+- Unit tests for the server action
+
 ## Notes
+
+- Use `@google/genai` (current SDK) — NOT the deprecated `@google/generative-ai` package
+- Model: `gemini-2.5-flash-lite` via `ai.models.generateContent({ model, contents, config: { systemInstruction, responseMimeType: "application/json" } })`
+- `response.text` is an accessor, not a method
+- Model may return `{"tags": [...]}` or `[...]` directly — handle both; normalize all tags to lowercase
+- Handle Gemini's shared-per-project free-tier quota: catch `429 RESOURCE_EXHAUSTED` gracefully (friendly toast, optional backoff+jitter retry), don't crash the action — the per-user rate limit is a fairness guard, not the real ceiling
+- `GEMINI_API_KEY` server-only env var (no `NEXT_PUBLIC_` prefix), also needed in Vercel env vars for deployment
+- Free-tier privacy note: Gemini may use inputs/outputs to improve its models on the free tier — acceptable for this project's data, but worth flagging
+- `isPro` isn't currently passed to create/edit UI components — needs to be threaded as a prop (or fetched) for UI-level button visibility; server-side gating in the action is the real enforcement
+- Full spec: context/features/ai-auto-tag-spec.md
 
 ## History
 

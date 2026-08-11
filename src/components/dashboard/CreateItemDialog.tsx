@@ -21,10 +21,12 @@ import { CollectionSelect, type CollectionOption } from "@/components/dashboard/
 import { FileUpload, type UploadedFile } from "@/components/dashboard/FileUpload";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
 import { LanguageSelect } from "@/components/dashboard/LanguageSelect";
+import { TagSuggestButton, TagSuggestionChips, useTagSuggestions } from "@/components/dashboard/TagSuggestions";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import type { ItemTypeWithCount } from "@/lib/db/items";
 import { CONTENT_TYPES, FILE_TYPES, LANGUAGE_TYPES } from "@/lib/item-type-kinds";
 import { DEFAULT_LANGUAGE } from "@/lib/languages";
+import { appendTag, parseTagsInput } from "@/lib/tags";
 import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +46,7 @@ interface CreateItemDialogProps {
   collections: CollectionOption[];
   defaultTypeName?: string;
   trigger?: React.ReactElement;
+  isPro: boolean;
 }
 
 export function CreateItemDialog({
@@ -51,6 +54,7 @@ export function CreateItemDialog({
   collections,
   defaultTypeName,
   trigger,
+  isPro,
 }: CreateItemDialogProps) {
   const router = useRouter();
 
@@ -87,10 +91,7 @@ export function CreateItemDialog({
       fileUrl: isFileType ? (form.file?.fileUrl ?? null) : null,
       fileName: isFileType ? (form.file?.fileName ?? null) : null,
       fileSize: isFileType ? (form.file?.fileSize ?? null) : null,
-      tags: form.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags: parseTagsInput(form.tags),
       collectionIds: form.collectionIds,
     });
 
@@ -107,6 +108,14 @@ export function CreateItemDialog({
 
   const isUrlType = typeName === "link";
   const isFileType = FILE_TYPES.includes(typeName);
+  const isContentType = CONTENT_TYPES.includes(typeName);
+  const aiContent = (isContentType ? form.content : form.description) || form.url || null;
+  const tagSuggestions = useTagSuggestions({
+    title: form.title,
+    content: aiContent,
+    existingTags: parseTagsInput(form.tags),
+    onAccept: (tag) => setForm((prev) => ({ ...prev, tags: appendTag(prev.tags, tag) })),
+  });
   const canSubmit =
     form.title.trim().length > 0 &&
     (!isUrlType || form.url.trim().length > 0) &&
@@ -240,15 +249,28 @@ export function CreateItemDialog({
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="create-item-tags" className="text-sm font-medium">
-              Tags
-              <span className="ml-1 font-normal text-muted-foreground">(optional)</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="create-item-tags" className="text-sm font-medium">
+                Tags
+                <span className="ml-1 font-normal text-muted-foreground">(optional)</span>
+              </label>
+              <TagSuggestButton
+                isPro={isPro}
+                isLoading={tagSuggestions.isLoading}
+                disabled={!form.title.trim()}
+                onClick={() => void tagSuggestions.suggest()}
+              />
+            </div>
             <Input
               id="create-item-tags"
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
               placeholder="comma, separated, tags"
+            />
+            <TagSuggestionChips
+              suggestions={tagSuggestions.suggestions}
+              onAccept={tagSuggestions.accept}
+              onReject={tagSuggestions.reject}
             />
           </div>
 

@@ -6,10 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { CollectionSelect, type CollectionOption } from "@/components/dashboard/CollectionSelect";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
 import { LanguageSelect } from "@/components/dashboard/LanguageSelect";
+import { TagSuggestButton, TagSuggestionChips, useTagSuggestions } from "@/components/dashboard/TagSuggestions";
 import type { ItemDetail } from "@/lib/db/items";
 import { formatDate } from "@/lib/format";
 import { CONTENT_TYPES, LANGUAGE_TYPES } from "@/lib/item-type-kinds";
 import { DEFAULT_LANGUAGE } from "@/lib/languages";
+import { appendTag, parseTagsInput } from "@/lib/tags";
 
 export interface EditState {
   title: string;
@@ -38,9 +40,24 @@ interface ItemDrawerEditFormProps {
   edit: EditState;
   onChange: (edit: EditState) => void;
   collections: CollectionOption[];
+  isPro: boolean;
 }
 
-export function ItemDrawerEditForm({ item, edit, onChange, collections }: ItemDrawerEditFormProps) {
+export function ItemDrawerEditForm({
+  item,
+  edit,
+  onChange,
+  collections,
+  isPro,
+}: ItemDrawerEditFormProps) {
+  const aiContent = (CONTENT_TYPES.includes(item.itemType.name) ? edit.content : edit.description) || edit.url || null;
+  const tagSuggestions = useTagSuggestions({
+    title: edit.title,
+    content: aiContent,
+    existingTags: parseTagsInput(edit.tags),
+    onAccept: (tag) => onChange({ ...edit, tags: appendTag(edit.tags, tag) }),
+  });
+
   return (
     <div className="flex flex-col gap-5 px-4 pb-4">
       <section className="space-y-1.5">
@@ -108,14 +125,27 @@ export function ItemDrawerEditForm({ item, edit, onChange, collections }: ItemDr
       )}
 
       <section className="space-y-1.5">
-        <label htmlFor="item-tags" className="text-xs font-medium text-muted-foreground">
-          Tags
-        </label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="item-tags" className="text-xs font-medium text-muted-foreground">
+            Tags
+          </label>
+          <TagSuggestButton
+            isPro={isPro}
+            isLoading={tagSuggestions.isLoading}
+            disabled={!edit.title.trim()}
+            onClick={() => void tagSuggestions.suggest()}
+          />
+        </div>
         <Input
           id="item-tags"
           placeholder="comma, separated, tags"
           value={edit.tags}
           onChange={(e) => onChange({ ...edit, tags: e.target.value })}
+        />
+        <TagSuggestionChips
+          suggestions={tagSuggestions.suggestions}
+          onAccept={tagSuggestions.accept}
+          onReject={tagSuggestions.reject}
         />
       </section>
 
