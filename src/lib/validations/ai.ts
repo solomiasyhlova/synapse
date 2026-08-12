@@ -6,3 +6,12 @@ export const generateAutoTagsSchema = z.object({
 });
 
 export type GenerateAutoTagsInput = z.infer<typeof generateAutoTagsSchema>;
+
+export const generateDescriptionSchema = z.object({
+  title: z.string().trim().min(1, "Title is required"),
+  content: z.string().nullable(),
+  url: z.string().nullable(),
+  fileName: z.string().nullable(),
+});
+
+export type GenerateDescriptionInput = z.infer<typeof generateDescriptionSchema>;

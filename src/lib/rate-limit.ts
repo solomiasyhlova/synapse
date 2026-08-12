@@ -25,6 +25,7 @@ export const rateLimiters = {
   resetPassword: createLimiter(5, "15 m", "reset-password"),
   resendVerification: createLimiter(3, "15 m", "resend-verification"),
   autoTag: createLimiter(20, "1 h", "auto-tag"),
+  aiSummary: createLimiter(20, "1 h", "ai-summary"),
 };
 
 export interface RateLimitResult {

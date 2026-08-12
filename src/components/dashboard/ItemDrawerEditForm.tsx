@@ -4,12 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CollectionSelect, type CollectionOption } from "@/components/dashboard/CollectionSelect";
+import { DescriptionSuggestButton, useDescriptionSuggestion } from "@/components/dashboard/DescriptionSuggestion";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
 import { LanguageSelect } from "@/components/dashboard/LanguageSelect";
 import { TagSuggestButton, TagSuggestionChips, useTagSuggestions } from "@/components/dashboard/TagSuggestions";
 import type { ItemDetail } from "@/lib/db/items";
 import { formatDate } from "@/lib/format";
-import { CONTENT_TYPES, LANGUAGE_TYPES } from "@/lib/item-type-kinds";
+import { CONTENT_TYPES, FILE_TYPES, LANGUAGE_TYPES } from "@/lib/item-type-kinds";
 import { DEFAULT_LANGUAGE } from "@/lib/languages";
 import { appendTag, parseTagsInput } from "@/lib/tags";
 
@@ -50,12 +51,22 @@ export function ItemDrawerEditForm({
   collections,
   isPro,
 }: ItemDrawerEditFormProps) {
-  const aiContent = (CONTENT_TYPES.includes(item.itemType.name) ? edit.content : edit.description) || edit.url || null;
+  const isContentType = CONTENT_TYPES.includes(item.itemType.name);
+  const isUrlType = item.itemType.name === "link";
+  const isFileType = FILE_TYPES.includes(item.itemType.name);
+  const aiContent = (isContentType ? edit.content : edit.description) || edit.url || null;
   const tagSuggestions = useTagSuggestions({
     title: edit.title,
     content: aiContent,
     existingTags: parseTagsInput(edit.tags),
     onAccept: (tag) => onChange({ ...edit, tags: appendTag(edit.tags, tag) }),
+  });
+  const descriptionSuggestion = useDescriptionSuggestion({
+    title: edit.title,
+    content: isContentType ? edit.content : null,
+    url: isUrlType ? edit.url : null,
+    fileName: isFileType ? item.fileName : null,
+    onGenerate: (description) => onChange({ ...edit, description }),
   });
 
   return (
@@ -72,9 +83,17 @@ export function ItemDrawerEditForm({
       </section>
 
       <section className="space-y-1.5">
-        <label htmlFor="item-description" className="text-xs font-medium text-muted-foreground">
-          Description
-        </label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="item-description" className="text-xs font-medium text-muted-foreground">
+            Description
+          </label>
+          <DescriptionSuggestButton
+            isPro={isPro}
+            isLoading={descriptionSuggestion.isLoading}
+            disabled={!edit.title.trim()}
+            onClick={() => void descriptionSuggestion.suggest()}
+          />
+        </div>
         <Textarea
           id="item-description"
           value={edit.description}

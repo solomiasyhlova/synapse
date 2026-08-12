@@ -6,11 +6,17 @@ import { ZodError } from "zod";
 import { auth } from "@/auth";
 import { AI_MODEL, getGeminiClient } from "@/lib/ai/gemini-client";
 import { checkRateLimit, rateLimitMessage, rateLimiters } from "@/lib/rate-limit";
-import { generateAutoTagsSchema } from "@/lib/validations/ai";
+import { generateAutoTagsSchema, generateDescriptionSchema } from "@/lib/validations/ai";
 
 interface GenerateAutoTagsResult {
   success: boolean;
   data?: string[];
+  error?: string;
+}
+
+interface GenerateDescriptionResult {
+  success: boolean;
+  data?: string;
   error?: string;
 }
 
@@ -61,6 +67,89 @@ export async function generateAutoTags(data: unknown): Promise<GenerateAutoTagsR
     console.error("generateAutoTags failed:", error);
     return { success: false, error: "Failed to generate tag suggestions" };
   }
+}
+
+const DESCRIPTION_SYSTEM_INSTRUCTION =
+  "You are a summarization assistant for a developer knowledge base. Given an item's title " +
+  "and whatever context is available (content, a URL, or a file name), write a concise, " +
+  "specific 1-2 sentence description of what it is or does. Respond with JSON only.";
+
+export async function generateDescription(data: unknown): Promise<GenerateDescriptionResult> {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Not signed in" };
+    if (!session.user.isPro) return { success: false, error: "AI descriptions are a Pro feature" };
+
+    const { title, content, url, fileName } = await generateDescriptionSchema.parseAsync(data);
+
+    const rateLimit = await checkRateLimit(rateLimiters.aiSummary, session.user.id);
+    if (!rateLimit.success) {
+      return { success: false, error: rateLimitMessage(rateLimit.reset) };
+    }
+
+    const context = buildDescriptionContext({ content, url, fileName });
+
+    const response = await getGeminiClient().models.generateContent({
+      model: AI_MODEL,
+      contents: `Title: ${title}\n\n${context}`,
+      config: {
+        systemInstruction: DESCRIPTION_SYSTEM_INSTRUCTION,
+        responseMimeType: "application/json",
+      },
+    });
+
+    const description = parseDescriptionResponse(response.text);
+    if (!description) {
+      return { success: false, error: "No description generated" };
+    }
+
+    return { success: true, data: description };
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
+    }
+    if (error instanceof ApiError && error.status === 429) {
+      return { success: false, error: "AI is busy right now — try again in a minute." };
+    }
+    console.error("generateDescription failed:", error);
+    return { success: false, error: "Failed to generate description" };
+  }
+}
+
+function buildDescriptionContext({
+  content,
+  url,
+  fileName,
+}: {
+  content: string | null;
+  url: string | null;
+  fileName: string | null;
+}): string {
+  const parts: string[] = [];
+  if (content?.trim()) parts.push(`Content:\n${content.slice(0, MAX_CONTENT_LENGTH)}`);
+  if (url?.trim()) parts.push(`URL: ${url}`);
+  if (fileName?.trim()) parts.push(`File name: ${fileName}`);
+  return parts.length > 0 ? parts.join("\n\n") : "(no additional content available)";
+}
+
+function parseDescriptionResponse(text: string | undefined): string | null {
+  if (!text) return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return null;
+  }
+
+  const raw =
+    parsed && typeof parsed === "object" && "description" in parsed
+      ? (parsed as { description: unknown }).description
+      : typeof parsed === "string"
+        ? parsed
+        : null;
+
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }
 
 function parseTagsResponse(text: string | undefined): string[] {

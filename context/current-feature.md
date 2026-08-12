@@ -1,12 +1,27 @@
-# Current Feature
+# Current Feature: AI Description Summary
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Icon button (Sparkles, matching the existing `TagSuggestButton` pattern) next to the Description field that generates a 1-2 sentence summary via Gemini
+- Works on unsaved/in-progress items — operates on whatever is currently typed into the form (title, content/url/fileName, etc.), no need to save the item first
+- Available for all content types (snippet, prompt, note, command, link, file, image), using whatever fields are available per type (content for text types, url for link, fileName/title/description for file/image)
+- Generated summary fills the Description input; user can edit or discard it like any other field value (no auto-save)
+- Pro-gated, same as AI auto-tagging
+
 ## Notes
+
+- Mirrors the existing AI Auto-Tagging feature's shape closely — reuse its conventions rather than inventing new ones:
+  - New `generateDescription` server action in `src/actions/ai.ts`, same auth + Pro-gate + Zod-validate + rate-limit + try/catch(ApiError 429) shape as `generateAutoTags`
+  - New Zod schema in `src/lib/validations/ai.ts` (sibling to `generateAutoTagsSchema`) — needs to accept whatever fields differ per type (title, content, url, fileName) since file/image items have no `content`
+  - New rate limiter entry in `src/lib/rate-limit.ts`'s `rateLimiters` (e.g. `aiSummary`, same 20/hour/user shape as `autoTag`)
+  - Reuse `getGeminiClient()`/`AI_MODEL` from `src/lib/ai/gemini-client.ts`
+- UI: new button + hook (parallel to `TagSuggestions.tsx`'s `TagSuggestButton`/`useTagSuggestions`) wired into both `CreateItemDialog.tsx` and `ItemDrawerEditForm.tsx`, next to the Description label/field in both
+- Since nothing is saved yet, the action must take the field values directly as input (title/content/url/fileName/type) rather than an itemId — same as `generateAutoTags` already does
+- `isPro` is already threaded into both `CreateItemDialog` and `ItemDrawerEditForm` from the AI Auto-Tagging feature, so no new prop plumbing needed there
 
 ## History
 

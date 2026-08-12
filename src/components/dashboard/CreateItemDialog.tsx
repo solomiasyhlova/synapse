@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CollectionSelect, type CollectionOption } from "@/components/dashboard/CollectionSelect";
+import { DescriptionSuggestButton, useDescriptionSuggestion } from "@/components/dashboard/DescriptionSuggestion";
 import { FileUpload, type UploadedFile } from "@/components/dashboard/FileUpload";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
 import { LanguageSelect } from "@/components/dashboard/LanguageSelect";
@@ -116,6 +117,13 @@ export function CreateItemDialog({
     existingTags: parseTagsInput(form.tags),
     onAccept: (tag) => setForm((prev) => ({ ...prev, tags: appendTag(prev.tags, tag) })),
   });
+  const descriptionSuggestion = useDescriptionSuggestion({
+    title: form.title,
+    content: isContentType ? form.content : null,
+    url: isUrlType ? form.url : null,
+    fileName: isFileType ? (form.file?.fileName ?? null) : null,
+    onGenerate: (description) => setForm((prev) => ({ ...prev, description })),
+  });
   const canSubmit =
     form.title.trim().length > 0 &&
     (!isUrlType || form.url.trim().length > 0) &&
@@ -180,10 +188,18 @@ export function CreateItemDialog({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="create-item-description" className="text-sm font-medium">
-              Description
-              <span className="ml-1 font-normal text-muted-foreground">(optional)</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="create-item-description" className="text-sm font-medium">
+                Description
+                <span className="ml-1 font-normal text-muted-foreground">(optional)</span>
+              </label>
+              <DescriptionSuggestButton
+                isPro={isPro}
+                isLoading={descriptionSuggestion.isLoading}
+                disabled={!form.title.trim()}
+                onClick={() => void descriptionSuggestion.suggest()}
+              />
+            </div>
             <Textarea
               id="create-item-description"
               value={form.description}
