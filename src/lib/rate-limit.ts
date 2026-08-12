@@ -27,6 +27,7 @@ export const rateLimiters = {
   autoTag: createLimiter(20, "1 h", "auto-tag"),
   aiSummary: createLimiter(20, "1 h", "ai-summary"),
   explainCode: createLimiter(20, "1 h", "explain-code"),
+  promptOptimize: createLimiter(20, "1 h", "prompt-optimize"),
 };
 
 export interface RateLimitResult {

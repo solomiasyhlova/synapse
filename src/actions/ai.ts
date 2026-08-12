@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 import { auth } from "@/auth";
 import { AI_MODEL, getGeminiClient } from "@/lib/ai/gemini-client";
 import { checkRateLimit, rateLimitMessage, rateLimiters } from "@/lib/rate-limit";
-import { generateAutoTagsSchema, generateDescriptionSchema } from "@/lib/validations/ai";
+import { generateAutoTagsSchema, generateDescriptionSchema, optimizePromptSchema } from "@/lib/validations/ai";
 
 interface GenerateAutoTagsResult {
   success: boolean;
@@ -15,6 +15,12 @@ interface GenerateAutoTagsResult {
 }
 
 interface GenerateDescriptionResult {
+  success: boolean;
+  data?: string;
+  error?: string;
+}
+
+interface OptimizePromptResult {
   success: boolean;
   data?: string;
   error?: string;
@@ -114,6 +120,76 @@ export async function generateDescription(data: unknown): Promise<GenerateDescri
     console.error("generateDescription failed:", error);
     return { success: false, error: "Failed to generate description" };
   }
+}
+
+const OPTIMIZE_PROMPT_SYSTEM_INSTRUCTION =
+  "You are a prompt engineering assistant for a developer knowledge base. Given the title and " +
+  "current text of a saved AI prompt, rewrite it to be clearer, more specific, and more " +
+  "effective, while preserving its original intent. If the prompt is already well-written, " +
+  'make only minor improvements. Respond with JSON only, in the exact shape {"optimized": "<rewritten prompt text>"}.';
+
+export async function optimizePrompt(data: unknown): Promise<OptimizePromptResult> {
+  try {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Not signed in" };
+    if (!session.user.isPro) return { success: false, error: "Prompt optimization is a Pro feature" };
+
+    const { title, content } = await optimizePromptSchema.parseAsync(data);
+
+    const rateLimit = await checkRateLimit(rateLimiters.promptOptimize, session.user.id);
+    if (!rateLimit.success) {
+      return { success: false, error: rateLimitMessage(rateLimit.reset) };
+    }
+
+    const truncatedContent = content.slice(0, MAX_CONTENT_LENGTH);
+
+    const response = await getGeminiClient().models.generateContent({
+      model: AI_MODEL,
+      contents: `Title: ${title}\n\nPrompt:\n${truncatedContent}`,
+      config: {
+        systemInstruction: OPTIMIZE_PROMPT_SYSTEM_INSTRUCTION,
+        responseMimeType: "application/json",
+      },
+    });
+
+    const optimized = parseOptimizedPromptResponse(response.text);
+    if (!optimized) {
+      return { success: false, error: "No optimized prompt generated" };
+    }
+
+    return { success: true, data: optimized };
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
+    }
+    if (error instanceof ApiError && error.status === 429) {
+      return { success: false, error: "AI is busy right now — try again in a minute." };
+    }
+    console.error("optimizePrompt failed:", error);
+    return { success: false, error: "Failed to optimize prompt" };
+  }
+}
+
+function parseOptimizedPromptResponse(text: string | undefined): string | null {
+  if (!text) return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return null;
+  }
+
+  const raw =
+    parsed && typeof parsed === "object" && "optimized" in parsed
+      ? (parsed as { optimized: unknown }).optimized
+      : parsed && typeof parsed === "object" && "prompt" in parsed
+        ? (parsed as { prompt: unknown }).prompt
+        : typeof parsed === "string"
+          ? parsed
+          : null;
+
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }
 
 function buildDescriptionContext({

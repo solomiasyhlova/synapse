@@ -14,7 +14,7 @@ const rateLimitMessage = vi.fn((reset: number) => `Rate limited until ${reset}`)
 vi.mock("@/lib/rate-limit", () => ({
   checkRateLimit,
   rateLimitMessage,
-  rateLimiters: { autoTag: {}, aiSummary: {} },
+  rateLimiters: { autoTag: {}, aiSummary: {}, promptOptimize: {} },
 }));
 
 vi.mock("@google/genai", () => {
@@ -28,7 +28,7 @@ vi.mock("@google/genai", () => {
   return { ApiError };
 });
 
-const { generateAutoTags, generateDescription } = await import("./ai");
+const { generateAutoTags, generateDescription, optimizePrompt } = await import("./ai");
 
 function mockSession(overrides: { id?: string; isPro?: boolean } = {}) {
   authMock.mockResolvedValue({
@@ -247,6 +247,119 @@ describe("generateDescription", () => {
     generateContent.mockResolvedValue({ text: JSON.stringify({ description: "ok" }) });
 
     await generateDescription({ title: "Test", content: "x".repeat(3000), url: null, fileName: null });
+
+    const call = generateContent.mock.calls[0]![0] as { contents: string };
+    expect(call.contents).toContain("x".repeat(2000));
+    expect(call.contents).not.toContain("x".repeat(2001));
+  });
+});
+
+describe("optimizePrompt", () => {
+  it("rejects when not signed in", async () => {
+    authMock.mockResolvedValue(null);
+
+    const result = await optimizePrompt({ title: "Test", content: "Summarize this." });
+
+    expect(result).toEqual({ success: false, error: "Not signed in" });
+    expect(generateContent).not.toHaveBeenCalled();
+  });
+
+  it("rejects free users", async () => {
+    mockSession({ isPro: false });
+
+    const result = await optimizePrompt({ title: "Test", content: "Summarize this." });
+
+    expect(result).toEqual({ success: false, error: "Prompt optimization is a Pro feature" });
+    expect(generateContent).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid input", async () => {
+    mockSession();
+
+    const result = await optimizePrompt({ title: "", content: "Summarize this." });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Title is required");
+  });
+
+  it("rejects empty content", async () => {
+    mockSession();
+
+    const result = await optimizePrompt({ title: "Test", content: "   " });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Content is required");
+  });
+
+  it("rejects when the per-user rate limit is exceeded", async () => {
+    mockSession();
+    checkRateLimit.mockResolvedValue({ success: false, remaining: 0, reset: 123 });
+
+    const result = await optimizePrompt({ title: "Test", content: "Summarize this." });
+
+    expect(rateLimitMessage).toHaveBeenCalledWith(123);
+    expect(result).toEqual({ success: false, error: "Rate limited until 123" });
+    expect(generateContent).not.toHaveBeenCalled();
+  });
+
+  it("parses a { optimized: ... } response shape", async () => {
+    mockSession();
+    generateContent.mockResolvedValue({
+      text: JSON.stringify({ optimized: "  Summarize the following text in three bullet points.  " }),
+    });
+
+    const result = await optimizePrompt({ title: "Summarizer", content: "Summarize this." });
+
+    expect(result).toEqual({ success: true, data: "Summarize the following text in three bullet points." });
+  });
+
+  it("parses a bare JSON string response", async () => {
+    mockSession();
+    generateContent.mockResolvedValue({ text: JSON.stringify("A refined prompt.") });
+
+    const result = await optimizePrompt({ title: "Test", content: "Summarize this." });
+
+    expect(result).toEqual({ success: true, data: "A refined prompt." });
+  });
+
+  it("parses a { prompt: ... } response shape as a fallback", async () => {
+    mockSession();
+    generateContent.mockResolvedValue({
+      text: JSON.stringify({ title: "Summarizer", prompt: "Summarize the following text in three bullet points." }),
+    });
+
+    const result = await optimizePrompt({ title: "Summarizer", content: "Summarize this." });
+
+    expect(result).toEqual({ success: true, data: "Summarize the following text in three bullet points." });
+  });
+
+  it("returns an error when the model returns no usable prompt", async () => {
+    mockSession();
+    generateContent.mockResolvedValue({ text: "not json" });
+
+    const result = await optimizePrompt({ title: "Test", content: "Summarize this." });
+
+    expect(result).toEqual({ success: false, error: "No optimized prompt generated" });
+  });
+
+  it("surfaces a friendly message on a 429 quota error", async () => {
+    mockSession();
+    const { ApiError } = await import("@google/genai");
+    generateContent.mockRejectedValue(new ApiError("quota exceeded", 429));
+
+    const result = await optimizePrompt({ title: "Test", content: "Summarize this." });
+
+    expect(result).toEqual({
+      success: false,
+      error: "AI is busy right now — try again in a minute.",
+    });
+  });
+
+  it("truncates content sent to the model to 2000 characters", async () => {
+    mockSession();
+    generateContent.mockResolvedValue({ text: JSON.stringify({ optimized: "ok" }) });
+
+    await optimizePrompt({ title: "Test", content: "x".repeat(3000) });
 
     const call = generateContent.mock.calls[0]![0] as { contents: string };
     expect(call.contents).toContain("x".repeat(2000));

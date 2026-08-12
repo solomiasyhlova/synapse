@@ -22,6 +22,7 @@ import { DescriptionSuggestButton, useDescriptionSuggestion } from "@/components
 import { FileUpload, type UploadedFile } from "@/components/dashboard/FileUpload";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
 import { LanguageSelect } from "@/components/dashboard/LanguageSelect";
+import { usePromptOptimize } from "@/components/dashboard/PromptOptimizer";
 import { TagSuggestButton, TagSuggestionChips, useTagSuggestions } from "@/components/dashboard/TagSuggestions";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import type { ItemTypeWithCount } from "@/lib/db/items";
@@ -123,6 +124,11 @@ export function CreateItemDialog({
     url: isUrlType ? form.url : null,
     fileName: isFileType ? (form.file?.fileName ?? null) : null,
     onGenerate: (description) => setForm((prev) => ({ ...prev, description })),
+  });
+  const promptOptimize = usePromptOptimize({
+    title: form.title,
+    content: form.content,
+    onAccept: (optimized) => setForm((prev) => ({ ...prev, content: optimized })),
   });
   const canSubmit =
     form.title.trim().length > 0 &&
@@ -233,6 +239,7 @@ export function CreateItemDialog({
                 value={form.content}
                 language={form.language}
                 onChange={(content) => setForm({ ...form, content })}
+                optimize={typeName === "prompt" ? { isPro, ...promptOptimize } : undefined}
               />
             </div>
           )}

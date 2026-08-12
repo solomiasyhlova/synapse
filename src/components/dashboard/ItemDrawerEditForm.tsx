@@ -7,6 +7,7 @@ import { CollectionSelect, type CollectionOption } from "@/components/dashboard/
 import { DescriptionSuggestButton, useDescriptionSuggestion } from "@/components/dashboard/DescriptionSuggestion";
 import { ItemContentField } from "@/components/dashboard/ItemContentField";
 import { LanguageSelect } from "@/components/dashboard/LanguageSelect";
+import { usePromptOptimize } from "@/components/dashboard/PromptOptimizer";
 import { TagSuggestButton, TagSuggestionChips, useTagSuggestions } from "@/components/dashboard/TagSuggestions";
 import type { ItemDetail } from "@/lib/db/items";
 import { formatDate } from "@/lib/format";
@@ -68,6 +69,11 @@ export function ItemDrawerEditForm({
     fileName: isFileType ? item.fileName : null,
     onGenerate: (description) => onChange({ ...edit, description }),
   });
+  const promptOptimize = usePromptOptimize({
+    title: edit.title,
+    content: edit.content,
+    onAccept: (optimized) => onChange({ ...edit, content: optimized }),
+  });
 
   return (
     <div className="flex flex-col gap-5 px-4 pb-4">
@@ -126,6 +132,7 @@ export function ItemDrawerEditForm({
             language={edit.language}
             onChange={(content) => onChange({ ...edit, content })}
             textareaClassName="min-h-32"
+            optimize={item.itemType.name === "prompt" ? { isPro, ...promptOptimize } : undefined}
           />
         </section>
       )}

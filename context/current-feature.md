@@ -1,12 +1,27 @@
-# Current Feature
+# Current Feature: AI Prompt Optimizer
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Add a fourth AI feature: an "Optimize" button for `prompt`-type items that reviews/refines the current prompt text via Gemini.
+- Button lives in the content editor's header, in the same spot/style as the existing "Explain" button in `CodeEditor.tsx` (Sparkles icon, Pro-gated with the Crown/tooltip fallback for free users).
+- Flow: click Optimize -> send current content to Gemini -> show the refined version to the user -> user explicitly accepts (applies it to the content field) or rejects (keeps original) — do not silently overwrite like the existing Description Summary feature does.
+
 ## Notes
+
+- `prompt` items use `MarkdownEditor.tsx`, not `CodeEditor.tsx` (see `src/lib/item-type-kinds.ts`: `MARKDOWN_TYPES = ["note", "prompt"]`). The Optimize button belongs in `MarkdownEditor`'s header next to its existing Copy button — mirror `CodeEditor.tsx`'s `explain` prop pattern (an optional prop so `note` items, which share the same component, don't get the button).
+- Needs to be scoped to `prompt` only, not `note` — pass the optimize prop conditionally where `MarkdownEditor` is used, same way `CodeEditor`'s `explain` prop is only passed for snippet/command.
+- Unlike Explain (read-only drawer view only), this needs to modify an editable draft, so it should render in the editable contexts: `CreateItemDialog.tsx` and `ItemDrawerEditForm.tsx` (edit mode) — the read-only `ItemDrawerView` doesn't apply here since there's no field to write the accepted result into.
+- Follow the established AI feature conventions (see AI Auto-Tagging / AI Description Summary / AI Explain Code in History below): new Pro-gated + auth-checked + rate-limited + Zod-validated server action in `src/actions/ai.ts`, new schema in `src/lib/validations/ai.ts`, new rate limiter entry in `src/lib/rate-limit.ts`. Decide with the user at `/feature start` whether this should be a plain (non-streaming) Server Action like `generateDescription`/`generateAutoTags`, since the output is a single refined block of text rather than incremental prose like Explain.
+- Accept/reject UI: closest existing precedent is `TagSuggestionChips` (accept/reject affordance) rather than `DescriptionSuggestion` (silent overwrite) — check with the user on exact presentation (inline diff vs. side-by-side vs. replace-preview-then-confirm) since none of the existing AI features have this exact "review before applying" shape yet.
+
+## Decisions (confirmed with user before implementation)
+
+- Review UI: replace-preview-then-confirm. Clicking Optimize swaps the editor body to show the refined text with Cancel/Use this actions at the bottom; original content is untouched until "Use this" is clicked. Mirrors `CodeEditor.tsx`'s existing code/explain tab-switch shape.
+- Action shape: plain (non-streaming) Server Action, matching `generateAutoTags`/`generateDescription` — not a streaming route like Explain Code.
 
 ## History
 
