@@ -4,6 +4,7 @@ import { Download, File as FileIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { CodeEditor } from "@/components/dashboard/CodeEditor";
+import { useExplainCode } from "@/components/dashboard/ExplainCode";
 import { MarkdownEditor } from "@/components/dashboard/MarkdownEditor";
 import type { ItemDetail } from "@/lib/db/items";
 import { formatDate } from "@/lib/format";
@@ -12,9 +13,18 @@ import { formatBytes } from "@/lib/upload-constraints";
 
 interface ItemDrawerViewProps {
   item: ItemDetail;
+  isPro: boolean;
 }
 
-export function ItemDrawerView({ item }: ItemDrawerViewProps) {
+export function ItemDrawerView({ item, isPro }: ItemDrawerViewProps) {
+  const isExplainable = LANGUAGE_TYPES.includes(item.itemType.name);
+  const explainState = useExplainCode({
+    itemId: item.id,
+    title: item.title,
+    content: item.content ?? "",
+    language: item.language,
+  });
+
   return (
     <div className="flex flex-col gap-5 px-4 pb-4">
       {item.description && (
@@ -27,8 +37,13 @@ export function ItemDrawerView({ item }: ItemDrawerViewProps) {
       {item.content && (
         <section className="space-y-1.5">
           <h3 className="text-xs font-medium text-muted-foreground">Content</h3>
-          {LANGUAGE_TYPES.includes(item.itemType.name) ? (
-            <CodeEditor value={item.content} language={item.language} readOnly />
+          {isExplainable ? (
+            <CodeEditor
+              value={item.content}
+              language={item.language}
+              readOnly
+              explain={{ isPro, ...explainState }}
+            />
           ) : MARKDOWN_TYPES.includes(item.itemType.name) ? (
             <MarkdownEditor value={item.content} readOnly />
           ) : (

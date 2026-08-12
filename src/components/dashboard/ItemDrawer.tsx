@@ -219,7 +219,7 @@ export function ItemDrawer({ collections, isPro }: ItemDrawerProps) {
             isPro={isPro}
           />
         ) : item ? (
-          <ItemDrawerView item={item} />
+          <ItemDrawerView item={item} isPro={isPro} />
         ) : (
           <div className="flex flex-col gap-5 px-4 pb-4">
             <Skeleton className="h-4 w-full" />

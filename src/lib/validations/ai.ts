@@ -15,3 +15,11 @@ export const generateDescriptionSchema = z.object({
 });
 
 export type GenerateDescriptionInput = z.infer<typeof generateDescriptionSchema>;
+
+export const explainCodeSchema = z.object({
+  title: z.string().trim().min(1, "Title is required"),
+  content: z.string().trim().min(1, "Content is required"),
+  language: z.string().nullable(),
+});
+
+export type ExplainCodeInput = z.infer<typeof explainCodeSchema>;

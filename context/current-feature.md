@@ -1,12 +1,27 @@
-# Current Feature
+# Current Feature: AI Explain Code
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Add an `explainCode` server action (auth + Pro-gated + Zod-validated + rate-limited) that explains a snippet/command's content via Gemini
+- Reuse the Gemini client/rate-limit patterns from AI Auto-Tagging, but on the `gemini-2.5-flash` reasoning tier (fall back to `flash-lite` if the `flash` free-tier daily quota is too tight)
+- Add an "Explain" button (Sparkles icon) to the code editor's window-controls header, next to Copy — snippet/command types only, item drawer read view only (not create/edit forms)
+- After generating, show Code/Explain tabs in the editor header; render the explanation as streamed markdown in the same container space as the code editor
+- Pro gating in UI: Crown icon + "AI features require Pro subscription" tooltip for free users
+- Toast-based error handling for Pro gating, rate limiting, and AI service errors (including graceful handling of Gemini's `429 RESOURCE_EXHAUSTED`)
+- Unit tests for the server action
+
 ## Notes
+
+- Explanations are ~200-300 words, not persisted to the DB — regenerated on each click (an optional in-memory per-session cache keyed by item id is worth considering, since uncached clicks all draw on the shared free-tier quota)
+- Prefer `generateContentStream`, rendering markdown progressively; keep the `Loader2` spinner only for the initial connection/first token
+- Output is plain markdown text — no JSON response format needed (unlike auto-tagging)
+- `isPro` needs to be threaded down into the item drawer / code editor
+- Real code/command content is sent to Google (free-tier inputs/outputs may be used to improve their models) — accepted tradeoff for this project, just noting it
+- Full architectural context in `docs/ai-integration-plan.md`
 
 ## History
 

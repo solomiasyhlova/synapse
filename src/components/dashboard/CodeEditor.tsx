@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Crown, Loader2, Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { Monaco, OnMount } from "@monaco-editor/react";
 
 import { useEditorPreferences } from "@/components/dashboard/editor-preferences-context";
+import type { ExplainCodeState } from "@/components/dashboard/ExplainCode";
 import type { EditorTheme } from "@/lib/editor-preferences";
 import { getLanguageLabel } from "@/lib/languages";
 import { cn } from "@/lib/utils";
@@ -109,24 +112,38 @@ function toMonacoLanguage(language?: string | null) {
   return LANGUAGE_ALIASES[normalized] ?? normalized;
 }
 
+interface CodeEditorExplainProps extends ExplainCodeState {
+  isPro: boolean;
+}
+
 interface CodeEditorProps {
   value: string;
   language?: string | null;
   readOnly?: boolean;
   onChange?: (value: string) => void;
   className?: string;
+  explain?: CodeEditorExplainProps;
 }
 
-export function CodeEditor({ value, language, readOnly = false, onChange, className }: CodeEditorProps) {
+export function CodeEditor({ value, language, readOnly = false, onChange, className, explain }: CodeEditorProps) {
   const preferences = useEditorPreferences();
   const [copied, setCopied] = useState(false);
   const [height, setHeight] = useState(MIN_HEIGHT);
+  const [activeTab, setActiveTab] = useState<"code" | "explain">("code");
 
   async function handleCopy() {
     await navigator.clipboard.writeText(value);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
+
+  function handleExplainClick() {
+    setActiveTab("explain");
+    explain?.explain();
+  }
+
+  const showTabs = explain && explain.status !== "idle";
+  const showExplainPanel = activeTab === "explain" && showTabs;
 
   const handleMount: OnMount = (editor, monaco) => {
     defineEditorThemes(monaco);
@@ -142,15 +159,59 @@ export function CodeEditor({ value, language, readOnly = false, onChange, classN
   return (
     <div className={cn("overflow-hidden rounded-lg border border-input", className)}>
       <div className="flex items-center justify-between border-b border-input bg-[#18181b] px-3 py-2">
-        <div className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-full bg-[#ff5f56]" />
-          <span className="size-2.5 rounded-full bg-[#ffbd2e]" />
-          <span className="size-2.5 rounded-full bg-[#27c93f]" />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-[#ff5f56]" />
+            <span className="size-2.5 rounded-full bg-[#ffbd2e]" />
+            <span className="size-2.5 rounded-full bg-[#27c93f]" />
+          </div>
+          {showTabs && (
+            <div className="flex items-center gap-1">
+              {(["code", "explain"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={cn(
+                    "rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors",
+                    activeTab === tab ? "bg-white/10 text-zinc-100" : "text-zinc-400 hover:text-zinc-100"
+                  )}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3">
-          {language && (
+          {language && !showExplainPanel && (
             <span className="font-mono text-xs text-zinc-400">{getLanguageLabel(language)}</span>
           )}
+          {explain &&
+            (explain.isPro ? (
+              <button
+                type="button"
+                onClick={handleExplainClick}
+                disabled={explain.status === "loading" || explain.status === "streaming"}
+                className="text-zinc-400 transition-colors hover:text-zinc-100 disabled:opacity-50"
+                aria-label="Explain code"
+                title="Explain code"
+              >
+                {explain.status === "loading" ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="size-3.5" />
+                )}
+              </button>
+            ) : (
+              <span
+                className="cursor-default text-zinc-600"
+                title="AI features require Pro subscription"
+                aria-label="AI features require Pro subscription"
+              >
+                <Crown className="size-3.5" />
+              </span>
+            ))}
           <button
             type="button"
             onClick={() => void handleCopy()}
@@ -161,34 +222,51 @@ export function CodeEditor({ value, language, readOnly = false, onChange, classN
           </button>
         </div>
       </div>
-      <div style={{ height }} className="transition-[height] duration-150">
-        <Editor
-          value={value}
-          language={toMonacoLanguage(language)}
-          theme={MONACO_THEME_NAMES[preferences.theme]}
-          onMount={handleMount}
-          onChange={(nextValue) => onChange?.(nextValue ?? "")}
-          options={{
-            readOnly,
-            domReadOnly: readOnly,
-            minimap: { enabled: preferences.minimap },
-            fontSize: preferences.fontSize,
-            tabSize: preferences.tabSize,
-            wordWrap: preferences.wordWrap ? "on" : "off",
-            lineNumbers: "on",
-            scrollBeyondLastLine: false,
-            renderLineHighlight: readOnly ? "none" : "line",
-            padding: { top: 12, bottom: 12 },
-            scrollbar: {
-              verticalScrollbarSize: 8,
-              horizontalScrollbarSize: 8,
-            },
-            fontFamily: "var(--font-mono)",
-            cursorStyle: readOnly ? "line-thin" : "line",
-            automaticLayout: true,
-          }}
-        />
-      </div>
+      {showExplainPanel && explain ? (
+        <div
+          className="markdown-preview overflow-y-auto p-3"
+          style={{ minHeight: MIN_HEIGHT, maxHeight: MAX_HEIGHT }}
+        >
+          {explain.status === "loading" ? (
+            <div className="flex h-full items-center justify-center py-8 text-zinc-500">
+              <Loader2 className="size-5 animate-spin" />
+            </div>
+          ) : explain.status === "error" ? (
+            <p className="text-sm text-zinc-500">Couldn't generate an explanation. Click the sparkles icon to try again.</p>
+          ) : (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{explain.explanation ?? ""}</ReactMarkdown>
+          )}
+        </div>
+      ) : (
+        <div style={{ height }} className="transition-[height] duration-150">
+          <Editor
+            value={value}
+            language={toMonacoLanguage(language)}
+            theme={MONACO_THEME_NAMES[preferences.theme]}
+            onMount={handleMount}
+            onChange={(nextValue) => onChange?.(nextValue ?? "")}
+            options={{
+              readOnly,
+              domReadOnly: readOnly,
+              minimap: { enabled: preferences.minimap },
+              fontSize: preferences.fontSize,
+              tabSize: preferences.tabSize,
+              wordWrap: preferences.wordWrap ? "on" : "off",
+              lineNumbers: "on",
+              scrollBeyondLastLine: false,
+              renderLineHighlight: readOnly ? "none" : "line",
+              padding: { top: 12, bottom: 12 },
+              scrollbar: {
+                verticalScrollbarSize: 8,
+                horizontalScrollbarSize: 8,
+              },
+              fontFamily: "var(--font-mono)",
+              cursorStyle: readOnly ? "line-thin" : "line",
+              automaticLayout: true,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
