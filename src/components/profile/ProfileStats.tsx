@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { getProfileStats } from "@/lib/db/profile";
+import { typeNameToSlug } from "@/lib/item-type-slug";
 
 interface ProfileStatsProps {
   userId: string;
@@ -31,7 +32,7 @@ export async function ProfileStats({ userId }: ProfileStatsProps) {
           {typeBreakdown.map((type) => (
             <div key={type.id} className="flex items-center gap-2">
               <TypeIcon name={type.icon} className="size-4 shrink-0" style={{ color: type.color }} />
-              <span className="flex-1 truncate text-sm capitalize">{type.name}</span>
+              <span className="flex-1 truncate text-sm capitalize">{typeNameToSlug(type.name)}</span>
               <span className="text-sm text-muted-foreground">{type.itemCount}</span>
             </div>
           ))}
