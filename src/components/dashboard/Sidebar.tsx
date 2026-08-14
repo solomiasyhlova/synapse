@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, Clock, Folder, LayoutGrid, Settings, Star } from "lucide-react";
+import { ChevronDown, Clock, Folder, LayoutGrid, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -24,7 +24,7 @@ const navItems = [
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="px-2 pb-1 text-xs font-semibold tracking-wide text-muted-foreground">
+    <h3 className="px-2 pb-1 text-xs font-semibold tracking-wider text-foreground/70">
       {children}
     </h3>
   );
@@ -44,10 +44,10 @@ function SectionToggle({
       type="button"
       onClick={onToggle}
       aria-expanded={isOpen}
-      className="flex w-full items-center justify-between rounded-md px-2 pb-1 text-xs font-semibold tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+      className="flex w-full items-center justify-between rounded-md px-2 pb-1 text-sm font-semibold tracking-wider text-foreground transition-colors hover:text-foreground/80"
     >
       <span>{label}</span>
-      <ChevronDown className={cn("size-3.5 shrink-0 transition-transform", !isOpen && "-rotate-90")} />
+      <ChevronDown className={cn("size-4 shrink-0 transition-transform", !isOpen && "-rotate-90")} />
     </button>
   );
 }
@@ -81,7 +81,7 @@ export function SidebarContent({
   return (
     <div className="flex h-full flex-col justify-between">
       <div className="flex-1 space-y-4 overflow-y-auto p-2">
-        <nav className="space-y-0.5">
+        <nav className="space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -114,7 +114,7 @@ export function SidebarContent({
               onToggle={() => setTypesOpen((open) => !open)}
             />
           )}
-          <nav className={cn("space-y-0.5", !collapsed && !isTypesOpen && "hidden")}>
+          <nav className={cn("space-y-1", !collapsed && !isTypesOpen && "hidden")}>
             {itemTypes.map((type) => {
               const isLocked = (type.name === "file" || type.name === "image") && !user.isPro;
               const href = `/items/${typeNameToSlug(type.name)}`;
@@ -123,7 +123,7 @@ export function SidebarContent({
                 <Link
                   key={type.id}
                   href={href}
-                  title={collapsed ? type.name : undefined}
+                  title={collapsed ? typeNameToSlug(type.name) : undefined}
                   className={cn(
                     "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm capitalize transition-colors",
                     isActive
@@ -139,7 +139,7 @@ export function SidebarContent({
                   />
                   {!collapsed && (
                     <>
-                      <span className="flex-1 truncate">{type.name}</span>
+                      <span className="flex-1 truncate">{typeNameToSlug(type.name)}</span>
                       {isLocked ? (
                         <Badge
                           variant="outline"
@@ -168,11 +168,11 @@ export function SidebarContent({
               onToggle={() => setCollectionsOpen((open) => !open)}
             />
           )}
-          <div className={cn("space-y-4", !collapsed && !isCollectionsOpen && "hidden")}>
+          <div className={cn("space-y-3", !collapsed && !isCollectionsOpen && "hidden")}>
             {favoriteCollections.length > 0 && (
               <div>
-                {!collapsed && <SectionLabel>Favorite collections</SectionLabel>}
-                <nav className="space-y-0.5">
+                {!collapsed && <SectionLabel>Favorites</SectionLabel>}
+                <nav className="space-y-1">
                   {favoriteCollections.map((collection) => (
                     <Link
                       key={collection.id}
@@ -192,8 +192,8 @@ export function SidebarContent({
             )}
 
             <div>
-              {!collapsed && <SectionLabel>Recent collections</SectionLabel>}
-              <nav className="space-y-0.5">
+              {!collapsed && <SectionLabel>Recent</SectionLabel>}
+              <nav className="space-y-1">
                 {recentCollections.map((collection) => (
                   <Link
                     key={collection.id}
@@ -235,29 +235,7 @@ export function SidebarContent({
           </div>
         )}
 
-        {collapsed ? (
-          <>
-            <Link
-              href="/settings"
-              title="Settings"
-              className="flex items-center justify-center rounded-md px-0 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Settings className="size-4 shrink-0" />
-            </Link>
-            <UserMenu user={user} collapsed />
-          </>
-        ) : (
-          <>
-            <UserMenu user={user} />
-            <Link
-              href="/settings"
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Settings className="size-4 shrink-0" />
-              <span>Settings</span>
-            </Link>
-          </>
-        )}
+        <UserMenu user={user} collapsed={collapsed} />
       </div>
     </div>
   );
