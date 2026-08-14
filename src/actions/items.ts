@@ -1,8 +1,6 @@
 "use server";
 
-import { ZodError } from "zod";
-
-import { auth } from "@/auth";
+import { handleActionError, requireSession } from "@/lib/actions";
 import {
   createItem as createItemQuery,
   deleteItem as deleteItemQuery,
@@ -13,22 +11,11 @@ import {
 import type { ItemDetail } from "@/lib/db/items";
 import { deleteFileFromR2 } from "@/lib/r2";
 import { createItemSchema, updateItemSchema } from "@/lib/validations/items";
+import type { ActionResult } from "@/types/actions";
 
-interface ActionResult {
-  success: boolean;
-  data?: ItemDetail;
-  error?: string;
-}
-
-interface DeleteActionResult {
-  success: boolean;
-  error?: string;
-}
-
-export async function createItem(data: unknown): Promise<ActionResult> {
+export async function createItem(data: unknown): Promise<ActionResult<ItemDetail>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const validData = await createItemSchema.parseAsync(data);
 
@@ -55,18 +42,13 @@ export async function createItem(data: unknown): Promise<ActionResult> {
 
     return { success: true, data: outcome.item };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
-    }
-    console.error("Failed to create item:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to create item:");
   }
 }
 
-export async function updateItem(itemId: string, data: unknown): Promise<ActionResult> {
+export async function updateItem(itemId: string, data: unknown): Promise<ActionResult<ItemDetail>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const validData = await updateItemSchema.parseAsync(data);
 
@@ -77,18 +59,13 @@ export async function updateItem(itemId: string, data: unknown): Promise<ActionR
 
     return { success: true, data: updated };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
-    }
-    console.error("Failed to update item:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to update item:");
   }
 }
 
-export async function toggleItemFavorite(itemId: string): Promise<ActionResult> {
+export async function toggleItemFavorite(itemId: string): Promise<ActionResult<ItemDetail>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const updated = await toggleItemFavoriteQuery(session.user.id, itemId);
     if (!updated) {
@@ -97,15 +74,13 @@ export async function toggleItemFavorite(itemId: string): Promise<ActionResult> 
 
     return { success: true, data: updated };
   } catch (error) {
-    console.error("Failed to toggle item favorite:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to toggle item favorite:");
   }
 }
 
-export async function toggleItemPin(itemId: string): Promise<ActionResult> {
+export async function toggleItemPin(itemId: string): Promise<ActionResult<ItemDetail>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const updated = await toggleItemPinQuery(session.user.id, itemId);
     if (!updated) {
@@ -114,15 +89,13 @@ export async function toggleItemPin(itemId: string): Promise<ActionResult> {
 
     return { success: true, data: updated };
   } catch (error) {
-    console.error("Failed to toggle item pin:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to toggle item pin:");
   }
 }
 
-export async function deleteItem(itemId: string): Promise<DeleteActionResult> {
+export async function deleteItem(itemId: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const deleted = await deleteItemQuery(session.user.id, itemId);
     if (!deleted) {
@@ -139,7 +112,6 @@ export async function deleteItem(itemId: string): Promise<DeleteActionResult> {
 
     return { success: true };
   } catch (error) {
-    console.error("Failed to delete item:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to delete item:");
   }
 }

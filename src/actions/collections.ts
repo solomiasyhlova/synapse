@@ -1,8 +1,6 @@
 "use server";
 
-import { ZodError } from "zod";
-
-import { auth } from "@/auth";
+import { handleActionError, requireSession } from "@/lib/actions";
 import {
   createCollection as createCollectionQuery,
   deleteCollection as deleteCollectionQuery,
@@ -11,17 +9,11 @@ import {
 } from "@/lib/db/collections";
 import type { CollectionDetail, CollectionWithStats } from "@/lib/db/collections";
 import { createCollectionSchema, updateCollectionSchema } from "@/lib/validations/collections";
+import type { ActionResult } from "@/types/actions";
 
-interface ActionResult<T = CollectionWithStats> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
-export async function createCollection(data: unknown): Promise<ActionResult> {
+export async function createCollection(data: unknown): Promise<ActionResult<CollectionWithStats>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const validData = await createCollectionSchema.parseAsync(data);
 
@@ -32,11 +24,7 @@ export async function createCollection(data: unknown): Promise<ActionResult> {
 
     return { success: true, data: outcome.collection };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
-    }
-    console.error("Failed to create collection:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to create collection:");
   }
 }
 
@@ -45,8 +33,7 @@ export async function updateCollection(
   data: unknown,
 ): Promise<ActionResult<CollectionDetail>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const validData = await updateCollectionSchema.parseAsync(data);
 
@@ -55,40 +42,32 @@ export async function updateCollection(
 
     return { success: true, data: updated };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
-    }
-    console.error("Failed to update collection:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to update collection:");
   }
 }
 
 export async function toggleCollectionFavorite(id: string): Promise<ActionResult<CollectionDetail>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const updated = await toggleCollectionFavoriteQuery(session.user.id, id);
     if (!updated) return { success: false, error: "Collection not found" };
 
     return { success: true, data: updated };
   } catch (error) {
-    console.error("Failed to toggle collection favorite:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to toggle collection favorite:");
   }
 }
 
-export async function deleteCollection(id: string): Promise<ActionResult<never>> {
+export async function deleteCollection(id: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const deleted = await deleteCollectionQuery(session.user.id, id);
     if (!deleted) return { success: false, error: "Collection not found" };
 
     return { success: true };
   } catch (error) {
-    console.error("Failed to delete collection:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to delete collection:");
   }
 }

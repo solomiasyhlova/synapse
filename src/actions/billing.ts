@@ -2,23 +2,18 @@
 
 import { redirect } from "next/navigation";
 
-import { auth } from "@/auth";
+import { handleActionError, requireSession } from "@/lib/actions";
 import { getUserBilling } from "@/lib/db/billing";
 import { prisma } from "@/lib/prisma";
 import { getStripe, STRIPE_PRICES, type BillingInterval } from "@/lib/stripe";
+import type { ActionResult } from "@/types/actions";
 
-interface ActionError {
-  success: false;
-  error: string;
-}
-
-export async function createCheckoutSession(interval: BillingInterval): Promise<ActionError | void> {
+export async function createCheckoutSession(interval: BillingInterval): Promise<ActionResult | void> {
   let checkoutUrl: string;
 
   try {
     const stripe = getStripe();
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const billing = await getUserBilling(session.user.id);
     if (!billing) return { success: false, error: "User not found" };
@@ -48,20 +43,18 @@ export async function createCheckoutSession(interval: BillingInterval): Promise<
     if (!checkoutSession.url) return { success: false, error: "Could not start checkout" };
     checkoutUrl = checkoutSession.url;
   } catch (error) {
-    console.error("Failed to create checkout session:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to create checkout session:");
   }
 
   redirect(checkoutUrl);
 }
 
-export async function createPortalSession(): Promise<ActionError | void> {
+export async function createPortalSession(): Promise<ActionResult | void> {
   let portalUrl: string;
 
   try {
     const stripe = getStripe();
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const billing = await getUserBilling(session.user.id);
     if (!billing?.stripeCustomerId) return { success: false, error: "No billing account found" };
@@ -73,8 +66,7 @@ export async function createPortalSession(): Promise<ActionError | void> {
 
     portalUrl = portalSession.url;
   } catch (error) {
-    console.error("Failed to create portal session:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to create portal session:");
   }
 
   redirect(portalUrl);
