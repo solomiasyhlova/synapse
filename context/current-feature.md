@@ -2,15 +2,11 @@
 
 ## Status
 
-Completed
+Not Started
 
 ## Goals
 
-Switch the app's general UI font from Geist Mono to Inter, while keeping Geist Mono for code blocks and the terminal-style pages (Favorites/Recent, CodeEditor, MarkdownEditor code spans).
-
 ## Notes
-
-`--font-sans` and `--font-mono` in globals.css currently both point at the same Geist Mono variable, so this is a scoped change: add the sans font in layout.tsx, repoint `--font-sans` to it, leave `--font-mono` untouched. Explicit `font-mono` usages (CodeEditor, MarkdownEditor, ItemContentField, ItemDrawerView, TopBar, AISection, RecentList, FavoritesList) keep working unchanged. Tried Geist Sans first, then switched to Inter per user preference.
 
 ## History
 
