@@ -1,12 +1,31 @@
-# Current Feature
+# Current Feature: Components Refactor (Code Scan Cleanup)
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Extract a `useItemFavorite(item)` hook and use it in `ItemCard.tsx`, `ImageCard.tsx`, `FileListRow.tsx`, and `ItemDrawer.tsx` to replace their 4 independently copy-pasted optimistic favorite-toggle implementations.
+- Extract a `useCollectionActions(collection)` hook (favorite toggle + delete, optimistic-toast pattern) shared by `CollectionCard.tsx` and `CollectionPageActions.tsx`, which currently duplicate it.
+- Add `formatShortDate` to `src/lib/format.ts` and use it in `ItemRow.tsx`, `ItemCard.tsx`, `FavoritesList.tsx`, and `RecentList.tsx` (4 copies of the same function today); fold `FileListRow.tsx`'s separate date-format variant into the same shared helper.
+- Extract a generic `ConfirmDeleteDialog` (entityLabel/entityName/description/isDeleting/onConfirm) and use it for `DeleteItemDialog.tsx` and `DeleteCollectionDialog.tsx`, which are structurally identical apart from copy.
+- Extract a shared `EntityListSection`/`EntityRow` for the Items/Collections section pattern duplicated between `RecentList.tsx` and `FavoritesList.tsx` (identical row components, near-identical section structure); `FavoritesList` layers its sort controls on top.
+- Extract shared editor chrome (`useCopyToClipboard()` hook, `EDITOR_MIN_HEIGHT`/`EDITOR_MAX_HEIGHT` constants, an `AiTriggerButton` component) out of `CodeEditor.tsx` and `MarkdownEditor.tsx`, which currently duplicate all three.
+- Split `CreateItemDialog.tsx` (322 lines): extract a shared `ItemFormFields` used by both it and `ItemDrawerEditForm.tsx` (currently duplicating the same title/description/language/content/url/tags/collections field sequence + AI hooks), and pull its type-selector button row into its own `ItemTypeSelector` component.
+- Extract a small `useOpenItemProps(itemId)` hook (or `ClickableItemRow` wrapper) for the repeated `role="button"`/`tabIndex`/`onClick`/`onKeyDown` drawer-open markup in `ItemCard.tsx`, `ImageCard.tsx`, and `FileListRow.tsx`.
+- Split `Sidebar.tsx` (270 lines) into sub-components (`TypesNavList`, `FavoriteCollectionsNav`, `RecentCollectionsNav`, or one generic `SidebarNavList`) so `SidebarContent` is pure composition.
+- Extract a `CollectionCardMenu` (dropdown + both dialogs) out of `CollectionCard.tsx` so the card itself only handles layout; pairs with the `useCollectionActions` hook above.
+
 ## Notes
+
+Scope: `src/components/` refactor only, driven by a `code-scanner` agent pass over the current codebase (2026-08-14). Confirmed already-done extractions (ItemDrawer split, `item-type-kinds.ts`, `TypeIcon`, `formatBytes`) are NOT re-flagged here.
+
+Pure refactor — no behavior changes intended. Each goal should be verified as a no-op in the browser (same UI, same interactions) after extraction, per the standard workflow's Test step.
+
+Priority order (biggest win first, per the scan): items 1–2 are real bug-risk (duplicated logic that could silently drift if one copy is fixed and others aren't), item 3 is trivial (4x copy-pasted date formatter), item 4 is a quick near-identical-dialog merge. Items 7 and 9 are the only files that clearly cross the ~200+ line "should be split" bar with genuinely mixed concerns; the rest are duplication cleanups rather than size problems.
+
+Consider tackling as separate focused commits/PRs per goal (or a few grouped by theme — hooks, dialogs, list sections, editor chrome, form fields, sidebar) rather than one giant refactor branch, given the number of independent files touched.
 
 ## History
 

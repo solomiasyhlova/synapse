@@ -2,22 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
+import { Star } from "lucide-react";
 
-import { deleteCollection, toggleCollectionFavorite } from "@/actions/collections";
-import { DeleteCollectionDialog } from "@/components/dashboard/DeleteCollectionDialog";
+import { CollectionCardMenu } from "@/components/dashboard/CollectionCardMenu";
+import { ConfirmDeleteDialog } from "@/components/dashboard/ConfirmDeleteDialog";
 import { EditCollectionDialog } from "@/components/dashboard/EditCollectionDialog";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
+import { useCollectionActions } from "@/components/dashboard/use-collection-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { CollectionWithStats } from "@/lib/db/collections";
-import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 export function CollectionCard({ collection }: { collection: CollectionWithStats }) {
@@ -25,40 +19,18 @@ export function CollectionCard({ collection }: { collection: CollectionWithStats
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(collection.isFavorite);
+  const { isFavorite, toggleFavorite, isDeleting, deleteCollectionAction } = useCollectionActions(
+    collection,
+    { onDeleted: () => router.refresh() }
+  );
 
   function handleNavigate() {
     router.push(`/collections/${collection.id}`);
   }
 
-  async function handleToggleFavorite() {
-    const next = !isFavorite;
-    setIsFavorite(next);
-
-    const result = await toggleCollectionFavorite(collection.id);
-
-    if (result.success) {
-      toastManager.add({ title: next ? "Added to favorites" : "Removed from favorites" });
-      router.refresh();
-    } else {
-      setIsFavorite(!next);
-      toastManager.add({ title: "Failed to update favorite", description: result.error });
-    }
-  }
-
   async function handleDelete() {
-    setIsDeleting(true);
-    const result = await deleteCollection(collection.id);
-    setIsDeleting(false);
-
-    if (result.success) {
-      toastManager.add({ title: "Collection deleted" });
-      setDeleteOpen(false);
-      router.refresh();
-    } else {
-      toastManager.add({ title: "Failed to delete collection", description: result.error });
-    }
+    const success = await deleteCollectionAction();
+    if (success) setDeleteOpen(false);
   }
 
   return (
@@ -86,33 +58,17 @@ export function CollectionCard({ collection }: { collection: CollectionWithStats
                   aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                   onClick={(event) => {
                     event.stopPropagation();
-                    void handleToggleFavorite();
+                    void toggleFavorite();
                   }}
                 >
                   <Star
                     className={cn("size-3.5", isFavorite && "fill-yellow-400 text-yellow-400")}
                   />
                 </Button>
-                <div onClick={(event) => event.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      aria-label="Collection actions"
-                      className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      <MoreVertical className="size-4" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setEditOpen(true)}>
-                        <Pencil className="size-3.5" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
-                        <Trash2 className="size-3.5" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                <CollectionCardMenu
+                  onEditRequest={() => setEditOpen(true)}
+                  onDeleteRequest={() => setDeleteOpen(true)}
+                />
               </div>
             </CardTitle>
           </CardHeader>
@@ -152,10 +108,16 @@ export function CollectionCard({ collection }: { collection: CollectionWithStats
         collection={collection}
         onUpdated={() => router.refresh()}
       />
-      <DeleteCollectionDialog
+      <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        collectionName={collection.name}
+        title="Delete collection"
+        description={
+          <>
+            This permanently deletes &ldquo;{collection.name}&rdquo;. Items in this collection are
+            not deleted — they&apos;ll just no longer belong to it. This cannot be undone.
+          </>
+        }
         isDeleting={isDeleting}
         onConfirm={handleDelete}
       />

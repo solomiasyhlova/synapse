@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Copy, Crown, Loader2, Sparkles } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { AiTriggerButton } from "@/components/dashboard/AiTriggerButton";
 import type { PromptOptimizeState } from "@/components/dashboard/PromptOptimizer";
+import { useCopyToClipboard } from "@/components/dashboard/use-copy-to-clipboard";
+import { EDITOR_MAX_HEIGHT as MAX_HEIGHT, EDITOR_MIN_HEIGHT as MIN_HEIGHT } from "@/lib/editor-chrome";
 import { cn } from "@/lib/utils";
-
-const MIN_HEIGHT = 120;
-const MAX_HEIGHT = 400;
 
 type Tab = "write" | "preview";
 
@@ -33,7 +33,7 @@ export function MarkdownEditor({
   optimize,
 }: MarkdownEditorProps) {
   const [tab, setTab] = useState<Tab>(readOnly ? "preview" : "write");
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const activeTab = readOnly ? "preview" : tab;
@@ -46,12 +46,6 @@ export function MarkdownEditor({
     textarea.style.height = "auto";
     textarea.style.height = `${Math.min(Math.max(textarea.scrollHeight, MIN_HEIGHT), MAX_HEIGHT)}px`;
   }, [value, activeTab]);
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }
 
   return (
     <div className={cn("overflow-hidden rounded-lg border border-input bg-[#1e1e1e]", className)}>
@@ -81,34 +75,17 @@ export function MarkdownEditor({
         </div>
         <div className="flex items-center gap-3">
           {optimize && !isReviewing && (
-            optimize.isPro ? (
-              <button
-                type="button"
-                onClick={optimize.optimize}
-                disabled={optimize.status === "loading" || !value.trim()}
-                className="text-zinc-400 transition-colors hover:text-zinc-100 disabled:opacity-50"
-                aria-label="Optimize prompt"
-                title="Optimize prompt"
-              >
-                {optimize.status === "loading" ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="size-3.5" />
-                )}
-              </button>
-            ) : (
-              <span
-                className="cursor-default text-zinc-600"
-                title="AI features require Pro subscription"
-                aria-label="AI features require Pro subscription"
-              >
-                <Crown className="size-3.5" />
-              </span>
-            )
+            <AiTriggerButton
+              isPro={optimize.isPro}
+              showSpinner={optimize.status === "loading"}
+              disabled={optimize.status === "loading" || !value.trim()}
+              onClick={optimize.optimize}
+              label="Optimize prompt"
+            />
           )}
           <button
             type="button"
-            onClick={() => void handleCopy()}
+            onClick={() => void copy(value)}
             className="text-zinc-400 transition-colors hover:text-zinc-100"
             aria-label="Copy markdown"
           >

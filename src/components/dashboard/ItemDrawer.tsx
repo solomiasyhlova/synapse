@@ -7,7 +7,7 @@ import { deleteItem, toggleItemFavorite, toggleItemPin, updateItem } from "@/act
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DeleteItemDialog } from "@/components/dashboard/DeleteItemDialog";
+import { ConfirmDeleteDialog } from "@/components/dashboard/ConfirmDeleteDialog";
 import { ItemDrawerActions } from "@/components/dashboard/ItemDrawerActions";
 import { ItemDrawerEditForm, toEditState, type EditState } from "@/components/dashboard/ItemDrawerEditForm";
 import { ItemDrawerView } from "@/components/dashboard/ItemDrawerView";
@@ -229,10 +229,13 @@ export function ItemDrawer({ collections, isPro }: ItemDrawerProps) {
         )}
       </SheetContent>
 
-      <DeleteItemDialog
+      <ConfirmDeleteDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        itemTitle={item?.title}
+        title="Delete item"
+        description={
+          <>This permanently deletes &ldquo;{item?.title}&rdquo;. This cannot be undone.</>
+        }
         isDeleting={isDeleting}
         onConfirm={() => void handleDelete()}
       />

@@ -6,13 +6,7 @@ import { Card } from "@/components/ui/card";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
 import type { ItemWithType } from "@/lib/db/items";
-
-function formatShortDate(date: Date) {
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
+import { formatShortDate } from "@/lib/format";
 
 export function ItemRow({ item }: { item: ItemWithType }) {
   const type = item.itemType;

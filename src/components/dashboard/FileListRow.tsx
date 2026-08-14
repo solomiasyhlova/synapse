@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Download,
   File as FileIcon,
@@ -14,11 +12,12 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { toggleItemFavorite } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
+import { useItemFavorite } from "@/components/dashboard/use-item-favorite";
+import { useOpenItemProps } from "@/components/dashboard/use-open-item-props";
 import type { ItemWithType } from "@/lib/db/items";
-import { toastManager } from "@/lib/toast";
+import { formatShortDate } from "@/lib/format";
 import { formatBytes, getFileExtension } from "@/lib/upload-constraints";
 import { cn } from "@/lib/utils";
 
@@ -40,41 +39,14 @@ function FileTypeIcon({ fileName, className }: { fileName: string | null; classN
   return <Icon className={className} />;
 }
 
-function formatDate(date: Date) {
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
 export function FileListRow({ item }: { item: ItemWithType }) {
   const { openItem } = useItemDrawer();
-  const router = useRouter();
-  const [isFavorite, setIsFavorite] = useState(item.isFavorite);
-
-  async function handleToggleFavorite() {
-    const next = !isFavorite;
-    setIsFavorite(next);
-
-    const result = await toggleItemFavorite(item.id);
-
-    if (result.success) {
-      toastManager.add({ title: next ? "Added to favorites" : "Removed from favorites" });
-      router.refresh();
-    } else {
-      setIsFavorite(!next);
-      toastManager.add({ title: "Failed to update favorite", description: result.error });
-    }
-  }
+  const { isFavorite, toggle: handleToggleFavorite } = useItemFavorite(item.id, item.isFavorite);
+  const openItemProps = useOpenItemProps(openItem, item.id);
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={() => openItem(item.id)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openItem(item.id);
-        }
-      }}
+      {...openItemProps}
       className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40"
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
@@ -87,7 +59,7 @@ export function FileListRow({ item }: { item: ItemWithType }) {
         </div>
         <div className="flex flex-col gap-0.5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
           {item.fileSize != null && <span>{formatBytes(item.fileSize)}</span>}
-          <span>{formatDate(item.createdAt)}</span>
+          <span>{formatShortDate(item.createdAt, { includeYear: true })}</span>
         </div>
       </div>
       <Button

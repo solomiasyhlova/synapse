@@ -1,27 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Copy, Pin, Star } from "lucide-react";
 
-import { toggleItemFavorite } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TypeIcon } from "@/components/dashboard/TypeIcon";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
+import { useItemFavorite } from "@/components/dashboard/use-item-favorite";
+import { useOpenItemProps } from "@/components/dashboard/use-open-item-props";
 import type { ItemDetail, ItemWithType } from "@/lib/db/items";
+import { formatShortDate } from "@/lib/format";
 import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-
-function formatShortDate(date: Date) {
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
 
 export function ItemCard({ item }: { item: ItemWithType }) {
   const type = item.itemType;
   const { openItem } = useItemDrawer();
-  const router = useRouter();
-  const [isFavorite, setIsFavorite] = useState(item.isFavorite);
+  const { isFavorite, toggle: handleToggleFavorite } = useItemFavorite(item.id, item.isFavorite);
+  const openItemProps = useOpenItemProps(openItem, item.id);
 
   async function handleCopy() {
     const res = await fetch(`/api/items/${item.id}`);
@@ -39,34 +35,8 @@ export function ItemCard({ item }: { item: ItemWithType }) {
     toastManager.add({ title: "Copied to clipboard" });
   }
 
-  async function handleToggleFavorite() {
-    const next = !isFavorite;
-    setIsFavorite(next);
-
-    const result = await toggleItemFavorite(item.id);
-
-    if (result.success) {
-      toastManager.add({ title: next ? "Added to favorites" : "Removed from favorites" });
-      router.refresh();
-    } else {
-      setIsFavorite(!next);
-      toastManager.add({ title: "Failed to update favorite", description: result.error });
-    }
-  }
-
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => openItem(item.id)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openItem(item.id);
-        }
-      }}
-      className="group w-full cursor-pointer text-left"
-    >
+    <div {...openItemProps} className="group w-full cursor-pointer text-left">
       <Card
         className="border-l-2 transition-colors hover:bg-muted/40"
         style={{ borderLeftColor: type.color }}

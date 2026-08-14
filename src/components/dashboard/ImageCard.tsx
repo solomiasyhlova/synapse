@@ -1,47 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { ImageOff, Pin, Star } from "lucide-react";
 
-import { toggleItemFavorite } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-context";
+import { useItemFavorite } from "@/components/dashboard/use-item-favorite";
+import { useOpenItemProps } from "@/components/dashboard/use-open-item-props";
 import type { ItemWithType } from "@/lib/db/items";
-import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 export function ImageCard({ item }: { item: ItemWithType }) {
   const { openItem } = useItemDrawer();
-  const router = useRouter();
-  const [isFavorite, setIsFavorite] = useState(item.isFavorite);
-
-  async function handleToggleFavorite() {
-    const next = !isFavorite;
-    setIsFavorite(next);
-
-    const result = await toggleItemFavorite(item.id);
-
-    if (result.success) {
-      toastManager.add({ title: next ? "Added to favorites" : "Removed from favorites" });
-      router.refresh();
-    } else {
-      setIsFavorite(!next);
-      toastManager.add({ title: "Failed to update favorite", description: result.error });
-    }
-  }
+  const { isFavorite, toggle: handleToggleFavorite } = useItemFavorite(item.id, item.isFavorite);
+  const openItemProps = useOpenItemProps(openItem, item.id);
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={() => openItem(item.id)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openItem(item.id);
-        }
-      }}
+      {...openItemProps}
       className="group block w-full cursor-pointer overflow-hidden rounded-lg border border-border text-left transition-colors hover:bg-muted/40"
     >
       <div className="aspect-video overflow-hidden bg-muted">

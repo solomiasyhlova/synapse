@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,30 +13,29 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface DeleteCollectionDialogProps {
+interface ConfirmDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  collectionName?: string;
+  title: string;
+  description: ReactNode;
   isDeleting: boolean;
   onConfirm: () => void;
 }
 
-export function DeleteCollectionDialog({
+export function ConfirmDeleteDialog({
   open,
   onOpenChange,
-  collectionName,
+  title,
+  description,
   isDeleting,
   onConfirm,
-}: DeleteCollectionDialogProps) {
+}: ConfirmDeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete collection</DialogTitle>
-          <DialogDescription>
-            This permanently deletes &ldquo;{collectionName}&rdquo;. Items in this collection are
-            not deleted — they&apos;ll just no longer belong to it. This cannot be undone.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose render={<Button type="button" variant="ghost" />}>Cancel</DialogClose>

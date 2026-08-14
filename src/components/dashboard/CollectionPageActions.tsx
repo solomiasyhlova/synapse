@@ -4,12 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Star, Trash2 } from "lucide-react";
 
-import { deleteCollection, toggleCollectionFavorite } from "@/actions/collections";
 import { Button } from "@/components/ui/button";
-import { DeleteCollectionDialog } from "@/components/dashboard/DeleteCollectionDialog";
+import { ConfirmDeleteDialog } from "@/components/dashboard/ConfirmDeleteDialog";
 import { EditCollectionDialog } from "@/components/dashboard/EditCollectionDialog";
+import { useCollectionActions } from "@/components/dashboard/use-collection-actions";
 import type { CollectionDetail } from "@/lib/db/collections";
-import { toastManager } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 export function CollectionPageActions({ collection }: { collection: CollectionDetail }) {
@@ -17,36 +16,14 @@ export function CollectionPageActions({ collection }: { collection: CollectionDe
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(collection.isFavorite);
-
-  async function handleToggleFavorite() {
-    const next = !isFavorite;
-    setIsFavorite(next);
-
-    const result = await toggleCollectionFavorite(collection.id);
-
-    if (result.success) {
-      toastManager.add({ title: next ? "Added to favorites" : "Removed from favorites" });
-      router.refresh();
-    } else {
-      setIsFavorite(!next);
-      toastManager.add({ title: "Failed to update favorite", description: result.error });
-    }
-  }
+  const { isFavorite, toggleFavorite, isDeleting, deleteCollectionAction } = useCollectionActions(
+    collection,
+    { onDeleted: () => router.push("/collections") }
+  );
 
   async function handleDelete() {
-    setIsDeleting(true);
-    const result = await deleteCollection(collection.id);
-    setIsDeleting(false);
-
-    if (result.success) {
-      setDeleteOpen(false);
-      toastManager.add({ title: "Collection deleted" });
-      router.push("/collections");
-    } else {
-      toastManager.add({ title: "Failed to delete collection", description: result.error });
-    }
+    const success = await deleteCollectionAction();
+    if (success) setDeleteOpen(false);
   }
 
   return (
@@ -56,7 +33,7 @@ export function CollectionPageActions({ collection }: { collection: CollectionDe
           variant="ghost"
           size="sm"
           className={cn(isFavorite && "text-yellow-400")}
-          onClick={() => void handleToggleFavorite()}
+          onClick={() => void toggleFavorite()}
         >
           <Star className={cn("size-4", isFavorite && "fill-yellow-400")} />
           Favorite
@@ -83,10 +60,16 @@ export function CollectionPageActions({ collection }: { collection: CollectionDe
         collection={collection}
         onUpdated={() => router.refresh()}
       />
-      <DeleteCollectionDialog
+      <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        collectionName={collection.name}
+        title="Delete collection"
+        description={
+          <>
+            This permanently deletes &ldquo;{collection.name}&rdquo;. Items in this collection are
+            not deleted — they&apos;ll just no longer belong to it. This cannot be undone.
+          </>
+        }
         isDeleting={isDeleting}
         onConfirm={handleDelete}
       />

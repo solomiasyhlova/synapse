@@ -5,3 +5,11 @@ export function formatDate(date: string | Date) {
     year: "numeric",
   });
 }
+
+export function formatShortDate(date: Date, options?: { includeYear?: boolean }) {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(options?.includeYear ? { year: "numeric" as const } : {}),
+  });
+}

@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { Check, Copy, Crown, Loader2, Sparkles } from "lucide-react";
+import { Check, Copy, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Monaco, OnMount } from "@monaco-editor/react";
 
+import { AiTriggerButton } from "@/components/dashboard/AiTriggerButton";
 import { useEditorPreferences } from "@/components/dashboard/editor-preferences-context";
 import type { ExplainCodeState } from "@/components/dashboard/ExplainCode";
+import { useCopyToClipboard } from "@/components/dashboard/use-copy-to-clipboard";
 import type { EditorTheme } from "@/lib/editor-preferences";
+import { EDITOR_MAX_HEIGHT as MAX_HEIGHT, EDITOR_MIN_HEIGHT as MIN_HEIGHT } from "@/lib/editor-chrome";
 import { getLanguageLabel } from "@/lib/languages";
 import { cn } from "@/lib/utils";
 
@@ -17,9 +20,6 @@ const Editor = dynamic(() => import("@monaco-editor/react").then((mod) => mod.Ed
   ssr: false,
   loading: () => <div className="h-30 animate-pulse bg-[#18181b]" />,
 });
-
-const MIN_HEIGHT = 120;
-const MAX_HEIGHT = 400;
 
 const MONACO_THEME_NAMES: Record<EditorTheme, string> = {
   "vs-dark": "synapse-vs-dark",
@@ -127,15 +127,9 @@ interface CodeEditorProps {
 
 export function CodeEditor({ value, language, readOnly = false, onChange, className, explain }: CodeEditorProps) {
   const preferences = useEditorPreferences();
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
   const [height, setHeight] = useState(MIN_HEIGHT);
   const [activeTab, setActiveTab] = useState<"code" | "explain">("code");
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }
 
   function handleExplainClick() {
     setActiveTab("explain");
@@ -187,34 +181,18 @@ export function CodeEditor({ value, language, readOnly = false, onChange, classN
           {language && !showExplainPanel && (
             <span className="font-mono text-xs text-zinc-400">{getLanguageLabel(language)}</span>
           )}
-          {explain &&
-            (explain.isPro ? (
-              <button
-                type="button"
-                onClick={handleExplainClick}
-                disabled={explain.status === "loading" || explain.status === "streaming"}
-                className="text-zinc-400 transition-colors hover:text-zinc-100 disabled:opacity-50"
-                aria-label="Explain code"
-                title="Explain code"
-              >
-                {explain.status === "loading" ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="size-3.5" />
-                )}
-              </button>
-            ) : (
-              <span
-                className="cursor-default text-zinc-600"
-                title="AI features require Pro subscription"
-                aria-label="AI features require Pro subscription"
-              >
-                <Crown className="size-3.5" />
-              </span>
-            ))}
+          {explain && (
+            <AiTriggerButton
+              isPro={explain.isPro}
+              showSpinner={explain.status === "loading"}
+              disabled={explain.status === "loading" || explain.status === "streaming"}
+              onClick={handleExplainClick}
+              label="Explain code"
+            />
+          )}
           <button
             type="button"
-            onClick={() => void handleCopy()}
+            onClick={() => void copy(value)}
             className="text-zinc-400 transition-colors hover:text-zinc-100"
             aria-label="Copy code"
           >
