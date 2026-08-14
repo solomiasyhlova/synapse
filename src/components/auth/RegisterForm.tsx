@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { signInWithGitHub } from "@/actions/auth";
 import { registerSchema } from "@/lib/validations/auth";
+import { GitHubIcon } from "@/components/auth/GitHubIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toastManager } from "@/lib/toast";
@@ -104,6 +106,23 @@ export function RegisterForm() {
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "Creating account..." : "Create account"}
       </Button>
+
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="h-px flex-1 bg-border" />
+        or
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        onClick={() => void signInWithGitHub("")}
+      >
+        <GitHubIcon className="size-4" />
+        Sign in with GitHub
+      </Button>
+
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link href="/sign-in" className="text-foreground underline underline-offset-4">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Folder } from "lucide-react";
 
 const PRODUCT_LINKS = [
   { href: "#features", label: "Features" },
@@ -14,9 +15,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-12 pb-10">
         <div className="max-w-xs">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-            <span className="text-[#6366f1]" aria-hidden="true">
-              ◆
-            </span>
+            <Folder className="size-5 text-[#6366f1]" aria-hidden="true" />
             <span>Synapse</span>
           </Link>
           <p className="mt-3 text-sm text-muted-foreground/70">

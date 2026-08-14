@@ -49,10 +49,10 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <form action={formAction} className="space-y-3">
+    <div className="space-y-5">
+      <form action={formAction} className="space-y-4">
         <input type="hidden" name="callbackUrl" value={callbackUrl ?? ""} />
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <label htmlFor="email" className="text-sm font-medium">
             Email
           </label>
@@ -62,11 +62,12 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
             type="email"
             placeholder="you@example.com"
             required
+            className="h-11 px-3.5"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
         </div>
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label htmlFor="password" className="text-sm font-medium">
               Password
@@ -78,33 +79,40 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
               Forgot password?
             </Link>
           </div>
-          <Input id="password" name="password" type="password" placeholder="••••••••" required />
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            required
+            className="h-11 px-3.5"
+          />
         </div>
         {state.error && <p className="text-sm text-destructive">{state.error}</p>}
         {state.code === "email_not_verified" && (
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="h-11 w-full"
             disabled={isResending}
             onClick={handleResend}
           >
             {isResending ? "Sending..." : "Resend verification email"}
           </Button>
         )}
-        <Button type="submit" className="w-full" disabled={isPending}>
+        <Button type="submit" className="h-11 w-full" disabled={isPending}>
           {isPending ? "Signing in..." : "Sign in"}
         </Button>
       </form>
 
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex items-center gap-3 text-xs font-medium tracking-wider text-muted-foreground uppercase">
         <div className="h-px flex-1 bg-border" />
-        or
+        Or continue with
         <div className="h-px flex-1 bg-border" />
       </div>
 
       <form action={handleGitHubSignIn}>
-        <Button type="submit" variant="outline" className="w-full">
+        <Button type="submit" variant="outline" className="h-11 w-full">
           <GitHubIcon className="size-4" />
           Sign in with GitHub
         </Button>

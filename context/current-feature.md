@@ -2,11 +2,20 @@
 
 ## Status
 
-Not Started
+Ready for review
 
 ## Goals
 
+Fix three UI issues found during a Playwright-driven UI review of the auth pages:
+
+1. `/register` is missing the "Sign in with GitHub" button that `/sign-in` has — add the same GitHub OAuth button/divider to `RegisterForm`.
+2. The brand mark is inconsistent — `Navbar`/`Footer`/dashboard `Logo`/`MobileSidebar` use a "◆" diamond glyph, while `AuthCard` uses a filled circle badge with a `Plus` icon. Replace all of them with a single consistent mark: a `Folder` (lucide-react) icon.
+3. `Navbar`'s "Sign In"/"Get Started" CTA buttons are redundant on `/sign-in` and `/register` (the page already contains that exact action) — hide them on auth routes.
+4. Follow-up: restyle `SignInForm` to match a reference screenshot — remove the standalone "Synapse" logo block above `AuthCard` (redundant now that `Navbar` sits above it), widen/enlarge the card, and size up `SignInForm`'s inputs/buttons — while keeping the whole page fittable without scrolling.
+
 ## Notes
+
+Fixed a pre-existing layout bug while working on goal 4: `AuthCard`'s wrapper div combined `min-h-full` with `flex-1` inside a flex column that also contains a fixed `Navbar` (out of flow) and a `h-18` spacer — `min-h-full` resolved to 100% of the parent's height *in addition to* the spacer's height, so the page always overflowed by exactly 72px regardless of content size. Removed `min-h-full`, keeping just `flex-1`, which fixed the overflow on every `AuthCard`-based page (`/sign-in`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`), not only the ones this feature touched.
 
 ## History
 

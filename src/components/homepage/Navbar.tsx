@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Folder } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { GradientButton } from "@/components/homepage/GradientButton";
@@ -13,8 +15,11 @@ const NAV_LINKS = [
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const showSignIn = pathname !== "/sign-in";
+  const showGetStarted = pathname !== "/register";
 
   useEffect(() => {
     // The app shell keeps html/body non-scrolling (fixed dashboard layout), so this
@@ -38,9 +43,7 @@ export function Navbar() {
     >
       <div className="mx-auto flex h-18 max-w-6xl items-center justify-between gap-6 px-6">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="text-[#6366f1]" aria-hidden="true">
-            ◆
-          </span>
+          <Folder className="size-5 text-[#6366f1]" aria-hidden="true" />
           <span>Synapse</span>
         </Link>
 
@@ -53,17 +56,21 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center gap-2 sm:flex">
-          <Button
-            render={<Link href="/sign-in" />}
-            nativeButton={false}
-            variant="ghost"
-            className="h-auto px-3.5 py-2 text-sm font-semibold"
-          >
-            Sign In
-          </Button>
-          <GradientButton href="/register" className="px-5 py-2 text-sm font-semibold">
-            Get Started
-          </GradientButton>
+          {showSignIn && (
+            <Button
+              render={<Link href="/sign-in" />}
+              nativeButton={false}
+              variant="ghost"
+              className="h-auto px-3.5 py-2 text-sm font-semibold"
+            >
+              Sign In
+            </Button>
+          )}
+          {showGetStarted && (
+            <GradientButton href="/register" className="px-5 py-2 text-sm font-semibold">
+              Get Started
+            </GradientButton>
+          )}
         </div>
 
         <button
@@ -106,22 +113,26 @@ export function Navbar() {
               {link.label}
             </Link>
           ))}
-          <Button
-            render={<Link href="/sign-in" />}
-            nativeButton={false}
-            variant="ghost"
-            onClick={() => setNavOpen(false)}
-            className="h-auto px-0 text-sm font-semibold"
-          >
-            Sign In
-          </Button>
-          <GradientButton
-            href="/register"
-            onClick={() => setNavOpen(false)}
-            className="px-5 py-2 text-sm font-semibold"
-          >
-            Get Started
-          </GradientButton>
+          {showSignIn && (
+            <Button
+              render={<Link href="/sign-in" />}
+              nativeButton={false}
+              variant="ghost"
+              onClick={() => setNavOpen(false)}
+              className="h-auto px-0 text-sm font-semibold"
+            >
+              Sign In
+            </Button>
+          )}
+          {showGetStarted && (
+            <GradientButton
+              href="/register"
+              onClick={() => setNavOpen(false)}
+              className="px-5 py-2 text-sm font-semibold"
+            >
+              Get Started
+            </GradientButton>
+          )}
         </div>
       )}
     </nav>
