@@ -1,16 +1,12 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { ZodError } from "zod";
 
-import { auth, signOut } from "@/auth";
+import { signOut } from "@/auth";
+import { handleActionError, requireSession } from "@/lib/actions";
 import { prisma } from "@/lib/prisma";
 import { changePasswordSchema, setPasswordSchema } from "@/lib/validations/auth";
-
-interface ActionResult {
-  success: boolean;
-  error?: string;
-}
+import type { ActionResult } from "@/types/actions";
 
 export async function changePassword(
   currentPassword: string,
@@ -18,8 +14,7 @@ export async function changePassword(
   confirmPassword: string
 ): Promise<ActionResult> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const {
       currentPassword: validCurrentPassword,
@@ -41,11 +36,7 @@ export async function changePassword(
 
     return { success: true };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
-    }
-    console.error("Failed to change password:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to change password:");
   }
 }
 
@@ -54,8 +45,7 @@ export async function setPassword(
   confirmPassword: string
 ): Promise<ActionResult> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const { newPassword: validNewPassword } = await setPasswordSchema.parseAsync({
       newPassword,
@@ -72,18 +62,17 @@ export async function setPassword(
 
     return { success: true };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
-    }
-    console.error("Failed to set password:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to set password:");
   }
 }
 
 export async function deleteAccount() {
-  const session = await auth();
-  if (!session?.user) return { success: false, error: "Not signed in" };
+  try {
+    const session = await requireSession();
+    await prisma.user.delete({ where: { id: session.user.id } });
+  } catch (error) {
+    return handleActionError(error, "Failed to delete account:");
+  }
 
-  await prisma.user.delete({ where: { id: session.user.id } });
   await signOut({ redirectTo: "/" });
 }

@@ -1,32 +1,20 @@
 "use server";
 
-import { ZodError } from "zod";
-
-import { auth } from "@/auth";
+import { handleActionError, requireSession } from "@/lib/actions";
 import { updateEditorPreferences as updateEditorPreferencesQuery } from "@/lib/db/settings";
 import type { EditorPreferences } from "@/lib/editor-preferences";
 import { editorPreferencesSchema } from "@/lib/validations/settings";
+import type { ActionResult } from "@/types/actions";
 
-interface ActionResult {
-  success: boolean;
-  data?: EditorPreferences;
-  error?: string;
-}
-
-export async function updateEditorPreferences(data: unknown): Promise<ActionResult> {
+export async function updateEditorPreferences(data: unknown): Promise<ActionResult<EditorPreferences>> {
   try {
-    const session = await auth();
-    if (!session?.user) return { success: false, error: "Not signed in" };
+    const session = await requireSession();
 
     const validData = await editorPreferencesSchema.parseAsync(data);
     const updated = await updateEditorPreferencesQuery(session.user.id, validData);
 
     return { success: true, data: updated };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
-    }
-    console.error("Failed to update editor preferences:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to update editor preferences:");
   }
 }

@@ -5,6 +5,7 @@ import { AuthError, CredentialsSignin } from "next-auth";
 import { ZodError } from "zod";
 
 import { signIn, signOut } from "@/auth";
+import { handleActionError, zodErrorMessage } from "@/lib/actions";
 import { signInSchema, forgotPasswordSchema, resetPasswordSchema } from "@/lib/validations/auth";
 import { prisma } from "@/lib/prisma";
 import { createVerificationToken, consumeVerificationToken } from "@/lib/auth/verification-token";
@@ -16,10 +17,9 @@ import { sendVerificationEmail } from "@/lib/email/send-verification-email";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset-email";
 import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
 import { checkRateLimit, getClientIp, rateLimitMessage, rateLimiters } from "@/lib/rate-limit";
+import type { ActionResult as BaseActionResult } from "@/types/actions";
 
-interface ActionResult {
-  success: boolean;
-  error?: string;
+interface ActionResult extends BaseActionResult {
   code?: string;
 }
 
@@ -50,7 +50,7 @@ export async function signInWithCredentials(
     return { success: true };
   } catch (error) {
     if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
+      return { success: false, error: zodErrorMessage(error) };
     }
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -95,8 +95,7 @@ export async function resendVerificationEmail(email: string): Promise<ActionResu
 
     return { success: true };
   } catch (error) {
-    console.error("Failed to resend verification email:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to resend verification email:");
   }
 }
 
@@ -116,8 +115,7 @@ export async function verifyEmail(token: string): Promise<ActionResult> {
     }
     return { success: false, error: "This verification link is invalid.", code: "invalid" };
   } catch (error) {
-    console.error("Failed to verify email:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to verify email:");
   }
 }
 
@@ -140,11 +138,7 @@ export async function requestPasswordReset(email: string): Promise<ActionResult>
 
     return { success: true };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
-    }
-    console.error("Failed to request password reset:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to request password reset:");
   }
 }
 
@@ -177,11 +171,7 @@ export async function resetPassword(
     }
     return { success: false, error: "This reset link is invalid.", code: "invalid" };
   } catch (error) {
-    if (error instanceof ZodError) {
-      return { success: false, error: error.issues[0]?.message ?? "Invalid input" };
-    }
-    console.error("Failed to reset password:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return handleActionError(error, "Failed to reset password:");
   }
 }
 
